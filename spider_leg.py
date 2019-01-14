@@ -3,14 +3,14 @@
 import math
 
 class SpiderLeg:
-    def __init__(self, backwards):
+    def __init__(self):
         self._coxa_len = 24
         self._femur_len = 38
         self._tibia_len = 80
-        self._backwards = backwards
 
         xy_start = self._coxa_len + self._femur_len * 0.55
-        (self.x, self.y, self.z) = (xy_start, xy_start, -50)
+        xy_stand = -80
+        (self.x, self.y, self.z) = (xy_start, xy_start, xy_stand)
 
     def get_servo_angles(self):
         assert self.x >= 0 and self.x <= 100
@@ -35,29 +35,29 @@ class SpiderLeg:
             ) / (
             2.0 * self._femur_len * self._tibia_len
             )
-        alpha = math.acos(cos_alpha) * 180.0 / math.pi - 90
+        alpha = math.degrees(math.acos(cos_alpha))
 
-        # beta_tmp = (pow(self._femur_len, 2) + pow(self._tibia_len, 2) - pow(v, 2) - pow(self.z, 2)) / 2 / self._femur_len / self._tibia_len
-        # if (beta_tmp > 1 or beta_tmp < -1):
-        #     print("x=%f y=%f v=%f w=%f" % (self.x, self.y, v, w))
-        #     print("beta=%f" % beta_tmp)
-        #     if (beta_tmp > 1):
-        #         beta_tmp = 1
-        #     else:
-        #         beta_tmp = -1
-        # beta = math.acos(beta_tmp)
-        beta = 0
+        # We now solve for the coxa-femur angle.
+        b1 = math.atan2(self.z, xy_reach)
+        cos_b2 = (
+            self._femur_len * self._femur_len
+            + xyz_reach * xyz_reach
+            - self._tibia_len * self._tibia_len
+            ) / (
+            2.0 * self._femur_len * xyz_reach
+            )
+        b2 = math.acos(cos_b2)
+        print(math.degrees(b1), math.degrees(b2))
+        beta = 180 - math.degrees(b1 + b2)
 
         # Coxa angle.
-        gamma = math.atan2(self.y, self.x) * 180.0 / math.pi
-        if self._backwards:
-            alpha = -alpha
-            gamma = -gamma
+        gamma = math.degrees(math.atan2(self.x, self.y))
 
         return (alpha, beta, gamma)
 
 if __name__ == "__main__":
-    leg = SpiderLeg(backwards=False)
+    leg = SpiderLeg()
+
     a,b,g = leg.get_servo_angles()
     print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
 
@@ -65,12 +65,24 @@ if __name__ == "__main__":
     a,b,g = leg.get_servo_angles()
     print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
 
-    leg.x = 70
+    leg.x = 80
     leg.y = 20
+    a,b,g = leg.get_servo_angles()
+    print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
+
+    leg.x = 20
+    leg.y = 80
     a,b,g = leg.get_servo_angles()
     print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
 
     leg.x = 80
     leg.y = 80
+    leg.z = 0
+    a,b,g = leg.get_servo_angles()
+    print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
+
+    leg.x = 10
+    leg.y = 10
+    leg.z = -100
     a,b,g = leg.get_servo_angles()
     print("x=%f y=%f z=%f, a=%f, b=%f, g=%f" % (leg.x, leg.y, leg.z, a, b, g))
