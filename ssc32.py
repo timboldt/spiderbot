@@ -139,10 +139,10 @@ class SSC32(object):
 
         self.autocommit = autocommit
         self.ser = serial.Serial(port, baudrate, timeout=1)
-        self._servos = [Servo(self._servo_on_changed, i) for i in xrange(count)]
+        self._servos = [Servo(self._servo_on_changed, i) for i in range(count)]
 
         # for baudrate detection on Open Robotics controllers
-        self.ser.write('\r'*10)
+        self.ser.write(('\r'*10).encode('utf-8'))
         self.ser.flush()
 
         if config:
@@ -160,7 +160,7 @@ class SSC32(object):
                                                    self._servos)
 
     def __getitem__(self, it):
-        if type(it) == str or type(it) == unicode:
+        if type(it) == str:
             for servo in self._servos:
                 it = it.upper()
                 if servo.name == it:
@@ -182,20 +182,20 @@ class SSC32(object):
         `time` — operation time in ms ([#<n>P<pos>]T<time>)
         """
         cmd = ''.join([self._servos[i]._get_cmd_string()
-                       for i in xrange(len(self._servos))])
+                       for i in range(len(self._servos))])
         if time is not None and cmd != '':
             cmd += 'T{0}'.format(time)
         cmd += '\r'
-        self.ser.write(cmd)
+        self.ser.write(cmd.encode('utf-8'))
 
     def is_done(self):
         """
         Check that operations is done
         """
         self.ser.flushInput()
-        self.ser.write('Q\r')
+        self.ser.write('Q\r'.encode('utf-8'))
         r = self.ser.read(1)
-        return r == '.'
+        return r == '.'.encode('utf-8')
 
     def load_config(self, config):
         """
