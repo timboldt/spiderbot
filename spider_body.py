@@ -33,11 +33,11 @@ class SpiderBody:
             (self.legs[i].x, self.legs[i].y, self.legs[i].z) = self.legs[i].get_start_xyz()
         self._commit(1000)
 
-    def lift_leg(self, id, mm=30):
+    def lift_leg(self, id, mm=20):
         self.legs[id].z += mm
         self._commit(1000)
 
-    def shift_weight_off_leg(self, id, mm=20):
+    def shift_weight_off_leg(self, id, mm=10):
         if i % 2 == 1:
             mm = -mm
         self.legs[id].x += mm
@@ -54,7 +54,6 @@ if __name__ == "__main__":
     body = SpiderBody(ssc32.SSC32('/dev/ttyS6', 9600, count=32))
     body.stand_up()
     for i in range(4):
-        if i % 2 == 0:
-            body.shift_weight_off_leg(i)
-            body.lift_leg(i)
-            body.stand_up()
+        body.shift_weight_off_leg(i)
+        body.lift_leg(i)
+        body.stand_up()
