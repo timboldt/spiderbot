@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import math
 
@@ -7,10 +7,12 @@ class SpiderLeg:
         self._coxa_len = 24
         self._femur_len = 38
         self._tibia_len = 80
+        (self.x, self.y, self.z) = self.get_start_xyz()
 
+    def get_start_xyz(self):
         xy_start = self._coxa_len + self._femur_len * 0.55
         xy_stand = -80
-        (self.x, self.y, self.z) = (xy_start, xy_start, xy_stand)
+        return (xy_start, xy_start, xy_stand)
 
     def get_servo_angles(self):
         assert self.x >= 0 and self.x <= 100
