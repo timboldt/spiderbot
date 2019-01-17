@@ -47,7 +47,6 @@ class SpiderLeg:
             2.0 * self._femur_len * xyz_reach
             )
         b2 = math.acos(cos_b2)
-        print(math.degrees(b1), math.degrees(b2))
         beta = 180 - math.degrees(b1 + b2)
 
         # Coxa angle.
