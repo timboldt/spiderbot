@@ -15,7 +15,6 @@ class SpiderLeg:
         return (xy_start, xy_start, xy_stand)
 
     def get_servo_angles(self):
-        print(self.x, self.y, self.z)
         assert self.x >= 0 and self.x <= 100
         assert self.y >= 0 and self.y <= 100
 

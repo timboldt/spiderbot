@@ -49,8 +49,12 @@ class SpiderBody:
             self.legs[i].z += 30
         self._commit(100)
 
-    def lift_leg(self, id, mm=20):
+    def leg_up(self, id, mm=20):
         self.legs[id].z += mm
+        self._commit(100)
+
+    def leg_down(self, id):
+        (_, _, self.legs[id].z) = self.legs[id].get_start_xyz()
         self._commit(100)
 
     def shift_body(self, x_mm, y_mm):
@@ -73,3 +77,43 @@ class SpiderBody:
             self.shift_body(mm * 0.7, mm * 0.7)
         else: # BACK_RIGHT
             self.shift_body(mm * -0.7, mm * 0.7)
+    
+    def walk(self):
+        # https://makezine.com/2016/11/22/robot-quadruped-arduino-program/
+        self.stand_up()
+        first_time = True
+
+        for _ in range(3):
+            self.shift_weight_off_leg(self.BACK_RIGHT, 20)
+            self.leg_up(self.BACK_RIGHT)
+            self.legs[self.BACK_RIGHT].y -= 20
+            self.leg_down(self.BACK_RIGHT)
+            self.shift_weight_off_leg(self.BACK_RIGHT, -20)
+
+            self.shift_weight_off_leg(self.FRONT_RIGHT, 20)
+            self.leg_up(self.FRONT_RIGHT)
+            if first_time:
+                first_time = False
+                self.legs[self.FRONT_RIGHT].y += 20
+            else:
+                self.legs[self.FRONT_RIGHT].y += 40
+            self.leg_down(self.FRONT_RIGHT)
+            self.shift_weight_off_leg(self.FRONT_RIGHT, -20)
+
+            self.shift_body(0, 20)
+
+            self.shift_weight_off_leg(self.BACK_LEFT, 20)
+            self.leg_up(self.BACK_LEFT)
+            self.legs[self.BACK_LEFT].y -= 20
+            self.leg_down(self.BACK_LEFT)
+            self.shift_weight_off_leg(self.BACK_LEFT, -20)
+
+            self.shift_weight_off_leg(self.FRONT_LEFT, 20)
+            self.leg_up(self.FRONT_LEFT)
+            self.legs[self.FRONT_LEFT].y += 40
+            self.leg_down(self.FRONT_LEFT)
+            self.shift_weight_off_leg(self.FRONT_LEFT, -20)
+
+            self.shift_body(0, 20)
+
+        # TODO: put right legs back in position
