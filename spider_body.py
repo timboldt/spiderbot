@@ -21,7 +21,7 @@ class SpiderBody:
         self.FRONT_RIGHT = 1
         self.FRONT_LEFT = 2
         self.BACK_LEFT = 3
-        self.commit_speed = 10
+        self.commit_speed = 1
 
     def _commit(self, millis):
         for i in range(4):
