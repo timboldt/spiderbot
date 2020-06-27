@@ -1,9 +1,19 @@
 package main
 
-import "fmt"
-import "github.com/timboldt/spiderbot"
+import (
+	"fmt"
+
+	"github.com/timboldt/spiderbot/ssc32u"
+)
 
 func main() {
-	fmt.Println(spiderbot.Dummy())
-  }
+	ssc := ssc32u.New("/dev/tty1", 9600)
+	defer ssc.Close()
 
+	ssc.AddServo(1, "test1")
+	ssc.AddServo(14, "fourteen")
+
+	ssc.Servo(1).SetPosition(1300)
+
+	fmt.Printf("%v\n", ssc)
+}
