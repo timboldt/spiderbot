@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package spiderbot
+package spider
+
+type Body struct {
+	legs []Leg
+}
 
 func Dummy() string {
 	return "hello world"
