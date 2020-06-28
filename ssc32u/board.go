@@ -36,11 +36,9 @@ func (b *Board) Close() {
 
 func (b *Board) AddServo(id uint, name string) *Servo {
 	servo := &Servo{
-		name:         name,
-		id:           id,
-		position:     1500,
-		min_position: 500,
-		max_position: 2500,
+		name:     name,
+		id:       id,
+		position: 1500,
 	}
 	b.servos[id] = servo
 	return servo

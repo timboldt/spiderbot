@@ -14,24 +14,27 @@
 
 package ssc32u
 
+const minPosition = 500
+const maxPosition = 2500
+
 type Servo struct {
-	name         string
-	id           uint
-	position     uint
-	min_position uint
-	max_position uint
+	name     string
+	id       uint
+	position uint
 }
 
-func (s *Servo) SetAngleDegrees(angle int) {
-	// TODO
-	s.SetPosition(999)
+func (s *Servo) SetAngleDegrees(angle float32) {
+	if angle < 0 {
+		angle = 0
+	}
+	s.SetPosition(uint(angle*2000.0/180.0 + 500.0))
 }
 
 func (s *Servo) SetPosition(position uint) {
-	if position > s.max_position {
-		s.position = s.max_position
-	} else if position < s.min_position {
-		s.position = s.min_position
+	if position > maxPosition {
+		s.position = maxPosition
+	} else if position < minPosition {
+		s.position = minPosition
 	} else {
 		s.position = position
 	}
