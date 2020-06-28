@@ -58,3 +58,22 @@ func TestSetPosition(t *testing.T) {
 
 	}
 }
+
+func TestCommandString(t *testing.T) {
+	s := Servo{name: "test-servo",
+		id:         42,
+		position:   1234,
+		isModified: true,
+	}
+	want := "#42 P1234 "
+	got := s.commandString()
+	if got != want {
+		t.Errorf("commandString() = %s; want %s", got, want)
+	}
+	s.isModified = false
+	want = ""
+	got = s.commandString()
+	if got != want {
+		t.Errorf("commandString() = %s; want %s", got, want)
+	}
+}

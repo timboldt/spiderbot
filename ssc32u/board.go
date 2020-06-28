@@ -14,31 +14,62 @@
 
 package ssc32u
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/tarm/serial"
+)
 
 type Board struct {
+	port     *serial.Port
 	tty      string
 	baudrate uint
 	servos   map[uint]*Servo
 }
 
-func New(tty string, baudrate uint) Board {
+func New() Board {
 	return Board{
-		tty:      tty,
-		baudrate: baudrate,
-		servos:   make(map[uint]*Servo),
+		servos: make(map[uint]*Servo),
 	}
 }
 
-func (b *Board) Close() {
+func (b *Board) Connect(tty string, baudrate uint) bool {
+	config := &serial.Config{Name: tty, Baud: int(baudrate)}
+	port, err := serial.OpenPort(config)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	b.port = port
+	b.tty = tty
+	b.baudrate = baudrate
+	return true
+}
 
+func (b *Board) Close() {
+	if b.port != nil {
+		b.port.Close()
+		b.port = nil
+	}
+}
+
+func (b *Board) Commit(micros uint) {
+	if b.port != nil {
+		_, err := b.port.Write([]byte(b.commandString(micros)))
+		if err == nil {
+			for _, servo := range b.servos {
+				servo.isModified = false
+			}
+		}
+	}
 }
 
 func (b *Board) AddServo(id uint, name string) *Servo {
 	servo := &Servo{
-		name:     name,
-		id:       id,
-		position: 1500,
+		name:       name,
+		id:         id,
+		position:   1500,
+		isModified: true,
 	}
 	b.servos[id] = servo
 	return servo
@@ -55,4 +86,13 @@ func (b Board) String() string {
 	}
 	out += "}"
 	return out
+}
+
+func (b Board) commandString(micros uint) string {
+	cmd := ""
+	for _, servo := range b.servos {
+		cmd += servo.commandString()
+	}
+	cmd += fmt.Sprintf("T%d\r", micros)
+	return cmd
 }

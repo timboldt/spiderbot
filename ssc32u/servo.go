@@ -14,13 +14,16 @@
 
 package ssc32u
 
+import "fmt"
+
 const minPosition = 500
 const maxPosition = 2500
 
 type Servo struct {
-	name     string
-	id       uint
-	position uint
+	name       string
+	id         uint
+	position   uint
+	isModified bool
 }
 
 func (s *Servo) SetAngleDegrees(angle float32) {
@@ -38,4 +41,12 @@ func (s *Servo) SetPosition(position uint) {
 	} else {
 		s.position = position
 	}
+	s.isModified = true
+}
+
+func (s Servo) commandString() string {
+	if !s.isModified {
+		return ""
+	}
+	return fmt.Sprintf("#%d P%d ", s.id, s.position)
 }

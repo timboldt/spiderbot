@@ -16,18 +16,27 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/timboldt/spiderbot/ssc32u"
 )
 
 func main() {
-	ssc := ssc32u.New("/dev/tty1", 9600)
+	const deviceName = "/dev/rfcomm0"
+	const baudRate = 9600
+
+	ssc := ssc32u.New()
+	if !ssc.Connect(deviceName, baudRate) {
+		fmt.Printf("Failed to connect to '%s' at %d baud\n", deviceName, baudRate)
+		os.Exit(1)
+	}
 	defer ssc.Close()
 
 	ssc.AddServo(1, "test1")
 	ssc.AddServo(14, "fourteen")
 
 	ssc.Servo(1).SetPosition(1300)
+	ssc.Commit(100000)
 
 	fmt.Printf("%v\n", ssc)
 }
