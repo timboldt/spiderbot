@@ -24,12 +24,12 @@ type Board struct {
 	port     *serial.Port
 	tty      string
 	baudrate uint
-	servos   map[uint]*Servo
+	servos   map[string]*Servo
 }
 
 func New() Board {
 	return Board{
-		servos: make(map[uint]*Servo),
+		servos: make(map[string]*Servo),
 	}
 }
 
@@ -48,6 +48,9 @@ func (b *Board) Connect(tty string, baudrate uint) bool {
 
 func (b *Board) Close() {
 	if b.port != nil {
+		for i := 0; i < 32; i++ {
+			b.port.Write([]byte(fmt.Sprintf("STOP%d\r", i)))
+		}
 		b.port.Close()
 		b.port = nil
 	}
@@ -71,12 +74,12 @@ func (b *Board) AddServo(id uint, name string) *Servo {
 		position:   1500,
 		isModified: true,
 	}
-	b.servos[id] = servo
+	b.servos[name] = servo
 	return servo
 }
 
-func (b *Board) Servo(id uint) *Servo {
-	return b.servos[id]
+func (b *Board) Servo(name string) *Servo {
+	return b.servos[name]
 }
 
 func (b Board) String() string {
@@ -93,6 +96,10 @@ func (b Board) commandString(micros uint) string {
 	for _, servo := range b.servos {
 		cmd += servo.commandString()
 	}
-	cmd += fmt.Sprintf("T%d\r", micros)
+	if micros > 65535 {
+		micros = 65535
+	}
+	cmd += fmt.Sprintf("T%d\r\n", micros)
+	fmt.Println(cmd)
 	return cmd
 }
