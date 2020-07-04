@@ -14,10 +14,42 @@
 
 package spider
 
+const (
+	BackRight = iota
+	FrontRight
+	FrontLeft
+	BackLeft
+)
+
 type Body struct {
-	legs []Leg
+	legs []*Leg
 }
 
-func Dummy() string {
-	return "hello world"
+func NewBody() *Body {
+	legs := make([]*Leg, 4)
+	for i := 0; i < 4; i++ {
+		legs[i] = NewLeg()
+	}
+	return &Body{
+		legs: legs,
+	}
+}
+
+// Move a leg in the body reference frame.
+// X is rightward, Y is forward, Z is upward.
+func (b *Body) MoveLegAbsolute(id int, x, y, z float64) {
+	switch id {
+	case BackRight:
+		b.legs[id].SetAbsolutePos(x, -y, z)
+	case FrontRight:
+		b.legs[id].SetAbsolutePos(x, y, z)
+	case FrontLeft:
+		b.legs[id].SetAbsolutePos(-x, y, z)
+	case BackLeft:
+		b.legs[id].SetAbsolutePos(-x, -y, z)
+	}
+}
+
+func (b Body) GetLeg(id int) *Leg {
+	return b.legs[id]
 }

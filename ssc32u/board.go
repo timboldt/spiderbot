@@ -84,8 +84,8 @@ func (b *Board) Servo(name string) *Servo {
 
 func (b Board) String() string {
 	out := fmt.Sprintf("SSC-32U on %s (%d baud) {\n", b.tty, b.baudrate)
-	for id, servo := range b.servos {
-		out += fmt.Sprintf("  %02d (%s): %d\n", id, servo.name, servo.position)
+	for _, servo := range b.servos {
+		out += fmt.Sprintf("  %02d (%s): %d\n", servo.id, servo.name, servo.position)
 	}
 	out += "}"
 	return out

@@ -26,7 +26,7 @@ type Servo struct {
 	isModified bool
 }
 
-func (s *Servo) SetAngleDegrees(angle float32) {
+func (s *Servo) SetAngleDegrees(angle float64) {
 	if angle < 0 {
 		angle = 0
 	}

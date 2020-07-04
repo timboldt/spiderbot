@@ -19,6 +19,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/timboldt/spiderbot/spider"
 	"github.com/timboldt/spiderbot/ssc32u"
 )
 
@@ -31,58 +32,32 @@ func main() {
 		fmt.Printf("Failed to connect to '%s' at %d baud\n", deviceName, baudRate)
 		os.Exit(1)
 	}
-	//defer ssc.Close()
 
-	ssc.AddServo(0, "tibia-1")
-	ssc.AddServo(15, "tibia-2")
-	ssc.AddServo(31, "tibia-3")
-	ssc.AddServo(16, "tibia-4")
-	ssc.AddServo(1, "femur-1")
-	ssc.AddServo(14, "femur-2")
-	ssc.AddServo(30, "femur-3")
-	ssc.AddServo(17, "femur-4")
-	ssc.AddServo(2, "coxa-1")
-	ssc.AddServo(13, "coxa-2")
-	ssc.AddServo(29, "coxa-3")
-	ssc.AddServo(18, "coxa-4")
+	ssc.AddServo(0, "wrist-0")
+	ssc.AddServo(15, "wrist-1")
+	ssc.AddServo(31, "wrist-2")
+	ssc.AddServo(16, "wrist-3")
+	ssc.AddServo(1, "knee-0")
+	ssc.AddServo(14, "knee-1")
+	ssc.AddServo(30, "knee-2")
+	ssc.AddServo(17, "knee-3")
+	ssc.AddServo(2, "hip-0")
+	ssc.AddServo(13, "hip-1")
+	ssc.AddServo(29, "hip-2")
+	ssc.AddServo(18, "hip-3")
 
-	// Sit down.
-	ssc.Servo("femur-1").SetAngleDegrees(135)
-	ssc.Servo("femur-2").SetAngleDegrees(45)
-	ssc.Servo("femur-3").SetAngleDegrees(135)
-	ssc.Servo("femur-4").SetAngleDegrees(45)
-	ssc.Servo("coxa-1").SetAngleDegrees(45)
-	ssc.Servo("coxa-2").SetAngleDegrees(135)
-	ssc.Servo("coxa-3").SetAngleDegrees(45)
-	ssc.Servo("coxa-4").SetAngleDegrees(135)
-	ssc.Commit(100)
-	time.Sleep(2 * time.Second)
-
-	// Stand up.
-	ssc.Servo("femur-1").SetAngleDegrees(90)
-	ssc.Servo("femur-2").SetAngleDegrees(90)
-	ssc.Servo("femur-3").SetAngleDegrees(90)
-	ssc.Servo("femur-4").SetAngleDegrees(90)
-	ssc.Servo("coxa-1").SetAngleDegrees(45)
-	ssc.Servo("coxa-2").SetAngleDegrees(135)
-	ssc.Servo("coxa-3").SetAngleDegrees(45)
-	ssc.Servo("coxa-4").SetAngleDegrees(135)
+	b := spider.NewBody()
+	b.MoveLegAbsolute(spider.FrontRight, 40, 40, -80)
+	//l := b.GetLeg(spider.FrontRight)
+	// wrist, knee, hip := l.GetAngles()
+	//_, _, hip := l.GetAngles()
+	// ssc.Servo("wrist-1").SetAngleDegrees(wrist)
+	// ssc.Servo("knee-1").SetAngleDegrees(knee)
+	//ssc.Servo("hip-1").SetAngleDegrees(-hip)
 	ssc.Commit(500)
 	time.Sleep(2 * time.Second)
 
-	// Sit down.
-	ssc.Servo("femur-1").SetAngleDegrees(135)
-	ssc.Servo("femur-2").SetAngleDegrees(45)
-	ssc.Servo("femur-3").SetAngleDegrees(135)
-	ssc.Servo("femur-4").SetAngleDegrees(45)
-	ssc.Servo("coxa-1").SetAngleDegrees(45)
-	ssc.Servo("coxa-2").SetAngleDegrees(135)
-	ssc.Servo("coxa-3").SetAngleDegrees(45)
-	ssc.Servo("coxa-4").SetAngleDegrees(135)
-	ssc.Commit(500)
-	time.Sleep(2 * time.Second)
-
-	fmt.Printf("%v\n", ssc)
+	//fmt.Printf("%v\n", ssc)
 
 	ssc.Close()
 }

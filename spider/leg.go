@@ -14,61 +14,63 @@
 
 package spider
 
+import "math"
+
 const coxaLength = 24
 const femurLength = 38
 const tibiaLength = 80
 
 type Leg struct {
-	x, y, z float32
+	x, y, z float64
 }
 
-funct NewLeg() *Leg {
+func NewLeg() *Leg {
 	return &Leg{
-		x: coxaLength + femurLength * 0.55,
-		y: coxaLength + femurLength * 0.55,
-		z: 0,
+		x: coxaLength + femurLength*0.55,
+		y: coxaLength + femurLength*0.55,
+		z: -80,
 	}
 }
 
+func (l *Leg) SetAbsolutePos(x, y, z float64) {
+	l.x, l.y, l.z = x, y, z
+}
 
-// def get_servo_angles(self):
-// assert self.x >= 0 and self.x <= 100
-// assert self.y >= 0 and self.y <= 100
+func (l *Leg) SetRelativePos(x, y, z float64) {
+	l.x += x
+	l.y += y
+	l.z += z
+}
 
-// # Full horizontal distance (i.e., in the XY plane) from body to target.
-// xy_total = math.sqrt(self.x * self.x + self.y * self.y)
+func (l Leg) GetAngles() (float64, float64, float64) {
+	// Full horizontal distance (i.e., in the XY plane) from body-coxa joint to tibia tip.
+	horizReach := math.Sqrt(l.x*l.x + l.y*l.y)
 
-// # Horizontal distance (i.e., in the XY plane) to reach from the end of the coxa.
-// xy_reach = xy_total - self._coxa_len
+	// Horizontal distance (i.e., in the XY plane) from coxa-femur joint to tibia tip.
+	horizReachFromCoxa := horizReach - coxaLength
 
-// # Absolute distance from coxa to tibia tip.
-// xyz_reach = math.sqrt(xy_reach * xy_reach + self.z * self.z)
-// assert xyz_reach > 60 and xyz_reach < 110
+	// Absolute distance from coxa-femur joint to tibia tip.
+	absoluteReachFromCoxa := math.Sqrt(horizReachFromCoxa*horizReachFromCoxa + l.z*l.z)
 
-// # We now have a triangle with sides [femur_len, tibia_len, xyz_reach].
-// # Solve using the law of cosines.
-// cos_alpha = (
-// 	self._femur_len * self._femur_len
-// 	+ self._tibia_len * self._tibia_len
-// 	- xyz_reach * xyz_reach
-// 	) / (
-// 	2.0 * self._femur_len * self._tibia_len
-// 	)
-// alpha = math.degrees(math.acos(cos_alpha))
+	// We now have a triangle with sides [femurLength, tibiaLength, absoluteReachFromCoxa].
+	// Solve using the law of cosines.
+	// c^2 = a^2 + b^2 - 2*a*b*cos(C)
+	// 2*a*b*cos(C) =  a^2 + b^2 - c^2
+	// cos(C) = (a^2 + b^2 - c^2) / (2*a*b)
+	cosWristNumerator := femurLength*femurLength + tibiaLength*tibiaLength - absoluteReachFromCoxa*absoluteReachFromCoxa
+	cosWristDenominator := 2.0 * femurLength * tibiaLength
+	wrist := math.Acos(cosWristNumerator/cosWristDenominator) * 180 / math.Pi
 
-// # We now solve for the coxa-femur angle.
-// b1 = math.atan2(self.z, xy_reach)
-// cos_b2 = (
-// 	self._femur_len * self._femur_len
-// 	+ xyz_reach * xyz_reach
-// 	- self._tibia_len * self._tibia_len
-// 	) / (
-// 	2.0 * self._femur_len * xyz_reach
-// 	)
-// b2 = math.acos(cos_b2)
-// beta = 180 - math.degrees(b1 + b2)
+	// We now solve for the coxa-femur (knee) angle.
+	angle1 := math.Atan2(l.z, horizReachFromCoxa)
+	angle2 := math.Acos((femurLength*femurLength +
+		absoluteReachFromCoxa*absoluteReachFromCoxa -
+		tibiaLength*tibiaLength) /
+		(2.0 * femurLength * absoluteReachFromCoxa))
+	knee := 180 - (angle1+angle2)*180/math.Pi
 
-// # Coxa angle.
-// gamma = math.degrees(math.atan2(self.x, self.y))
+	// Body-coxa (hip) angle.
+	hip := math.Atan2(l.x, l.y) * 180 / math.Pi
 
-// return (alpha, beta, gamma)
+	return wrist, knee, hip
+}
