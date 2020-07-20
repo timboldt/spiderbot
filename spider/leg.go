@@ -72,5 +72,6 @@ func (l Leg) GetAngles() (float64, float64, float64) {
 	// Body-coxa (hip) angle.
 	hip := math.Atan2(l.x, l.y) * 180 / math.Pi
 
-	return wrist, knee, hip
+	// TODO: Clean this up so that it works for both types of legs.
+	return wrist - 90, knee - 180, 90 - hip
 }
