@@ -1,3 +1,4 @@
 *.pyc
 simulation.py
 .vscode/
+.DS_Store
