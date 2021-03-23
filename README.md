@@ -2,7 +2,9 @@
 
 Spider Bot based on [RegisHsu's 3D-printable quadraped](https://www.instructables.com/id/DIY-Spider-RobotQuad-robot-Quadruped/).
 
-Servo control is done with a [SSC-32U](http://www.lynxmotion.com/p-1032-ssc-32u-usb-servo-controller.aspx).
+The current version is written using the Arduino "HAL". It runs on a Adafruit Feather nrf-series and supports BLE control. The servo control is done with an [Adafruit PCA9685](https://learn.adafruit.com/16-channel-pwm-servo-driver), which is a 16-channel PWM device controllable via an I2C interface.
+
+The original version was in Python. A partial replacement was written in Go. Both of those versions ran on host systems and did servo control with a [SSC-32U](http://www.lynxmotion.com/p-1032-ssc-32u-usb-servo-controller.aspx) over a Bluetooth UART.
 
 ## Disclaimer
 
