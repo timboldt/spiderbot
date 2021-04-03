@@ -19,15 +19,12 @@ import (
 	"fmt"
 	"machine"
 	"strconv"
-	"time"
 
 	"github.com/timboldt/spiderbot/pkg/pca9685"
+	"github.com/timboldt/spiderbot/pkg/spider"
 )
 
 func main() {
-	time.Sleep(10 * time.Second)
-	println("hi")
-
 	//
 	// === Initialize hardware ===
 	//
@@ -40,7 +37,9 @@ func main() {
 		fmt.Printf("configure failed: %v", err)
 	}
 
-	var currPin byte
+	servos := spider.GetServos()
+
+	currServo := servos[0]
 	inbuf := make([]byte, 64)
 	inbufIdx := 0
 	uart := machine.UART0
@@ -55,15 +54,16 @@ func main() {
 				fallthrough
 			case '\r':
 				if inbufIdx > 0 {
-					if inbuf[0] == 'p' && inbufIdx > 1 {
+					if inbuf[0] == 's' && inbufIdx > 1 {
 						val, err := strconv.Atoi(string(inbuf[1:inbufIdx]))
 						if err != nil {
 							fmt.Println(err)
 						} else {
-							currPin = byte(val)
-							fmt.Printf("Setting pin %d to %d\n", currPin, 1500)
-							if err := pwm.SetPin(currPin, uint16(1500)); err != nil {
-								fmt.Printf("set pin PWM failed: %v", err)
+							currServo = servos[val]
+							micros := currServo.DegreesToMicros(90)
+							fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
+							if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
+								fmt.Printf("set servo PWM failed: %v", err)
 							}
 						}
 					} else {
@@ -71,9 +71,10 @@ func main() {
 						if err != nil {
 							fmt.Println(err)
 						} else {
-							fmt.Printf("Setting pin %d to %d\n", currPin, val)
-							if err := pwm.SetPin(currPin, uint16(val)); err != nil {
-								fmt.Printf("set pin PWM failed: %v", err)
+							micros := currServo.DegreesToMicros(int16(val))
+							fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
+							if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
+								fmt.Printf("set servo PWM failed: %v", err)
 							}
 						}
 					}
