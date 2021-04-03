@@ -42,7 +42,7 @@ func GetServos() [12]*Servo {
 		//
 		// Hip.
 		{
-			pin:             4,
+			pin:             3,
 			minVal:          700,
 			maxVal:          1700,
 			ninetyDegMicros: 1611,
@@ -50,7 +50,7 @@ func GetServos() [12]*Servo {
 		},
 		// Coxa.
 		{
-			pin:             5,
+			pin:             4,
 			minVal:          500,
 			maxVal:          1900,
 			ninetyDegMicros: 1045,
@@ -58,28 +58,66 @@ func GetServos() [12]*Servo {
 		},
 		// Tibia.
 		{
-			pin:             6,
+			pin:             5,
 			minVal:          1300,
 			maxVal:          2400,
 			ninetyDegMicros: 1900,
 			reversed:        true,
 		},
-
-		// 	0     1500     2200     2500
-		// 	4      700     1200     1700
-		// 	8      700     1200     1700
-		//    12     1400     1900     2400
-
-		// 	1     1200     2000     2600 (smaller == upwards)
-		// 	5      500     1100     1900 (bigger == upwards)
-		// 	9      700     1300     2100 (bigger == upwards)
-		// 	13 --- BAD PIN --- (middle = 1800?) (smaller == upwards?)
-
-		// 	2     1400     1900     2500 (bigger == outwards)
-		// 	6     1300     1900     2400 (smaller == outwards)
-		//    10     1500     2100     2500 (smaller == outwards)
-		//   14     1100     1600     2200 (bigger == outwards)
-
+		//
+		// Back right leg.
+		//
+		// Hip.
+		{
+			pin:             6,
+			minVal:          700,
+			maxVal:          1700,
+			ninetyDegMicros: 1800,
+			reversed:        false,
+		},
+		// Coxa.
+		{
+			pin:             7,
+			minVal:          700,
+			maxVal:          2100,
+			ninetyDegMicros: 1189,
+			reversed:        true,
+		},
+		// Tibia.
+		{
+			pin:             8,
+			minVal:          1500,
+			maxVal:          2500,
+			ninetyDegMicros: 2155,
+			reversed:        true,
+		},
+		//
+		// Back left leg.
+		//
+		// Hip.
+		{
+			pin:             9,
+			minVal:          1400,
+			maxVal:          2400,
+			ninetyDegMicros: 2500,
+			reversed:        false,
+		},
+		// Coxa.
+		{
+			pin:             10,
+			minVal:          1000,
+			maxVal:          2200,
+			ninetyDegMicros: 1600,
+			reversed:        false,
+		},
+		// Tibia.
+		{
+			pin:             11,
+			minVal:          1100,
+			maxVal:          2200,
+			ninetyDegMicros: 1600,
+			reversed:        false,
+		},
 	}
 }
 
