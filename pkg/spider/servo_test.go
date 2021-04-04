@@ -57,26 +57,3 @@ func TestDegreesToMicros(t *testing.T) {
 		}
 	}
 }
-
-// type Servo struct {
-// 	pin             byte
-// 	minVal          uint16
-// 	maxVal          uint16
-// 	ninetyDegMicros int16
-// 	reversed        bool
-// }
-// deg int16) uint16 {
-// 	if s.reversed {
-// 		deg = 90 - deg
-// 	} else {
-// 		deg = deg - 90
-// 	}
-// 	micros := uint16(deg*100/9 + s.ninetyDegMicros)
-// 	if micros > s.maxVal {
-// 		return s.maxVal
-// 	}
-// 	if micros < s.minVal {
-// 		return s.minVal
-// 	}
-// 	return micros
-// }
