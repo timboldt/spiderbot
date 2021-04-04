@@ -38,6 +38,21 @@ func main() {
 	}
 
 	servos := spider.GetServos()
+	legs := [4]*spider.Leg{
+		spider.NewLeg(spider.Point3D{}, servos[0], servos[1], servos[2]),
+		spider.NewLeg(spider.Point3D{}, servos[3], servos[4], servos[5]),
+		spider.NewLeg(spider.Point3D{}, servos[6], servos[7], servos[8]),
+		spider.NewLeg(spider.Point3D{}, servos[9], servos[10], servos[11]),
+	}
+	var out [12]uint16
+	out[0], out[1], out[3] = legs[0].ServoValues(spider.Point3D{})
+	out[3], out[4], out[5] = legs[1].ServoValues(spider.Point3D{})
+	out[6], out[7], out[8] = legs[2].ServoValues(spider.Point3D{})
+	out[9], out[10], out[11] = legs[3].ServoValues(spider.Point3D{})
+
+	for i := 0; i < 12; i++ {
+		pwm.SetPin(byte(i), out[i])
+	}
 
 	currServo := servos[0]
 	inbuf := make([]byte, 64)
