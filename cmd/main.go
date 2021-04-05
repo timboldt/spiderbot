@@ -45,7 +45,7 @@ func main() {
 		spider.NewLeg(spider.Point3D{}, servos[9], servos[10], servos[11]),
 	}
 	var out [12]uint16
-	out[0], out[1], out[3] = legs[0].ServoValues(spider.Point3D{})
+	out[0], out[1], out[2] = legs[0].ServoValues(spider.Point3D{})
 	out[3], out[4], out[5] = legs[1].ServoValues(spider.Point3D{})
 	out[6], out[7], out[8] = legs[2].ServoValues(spider.Point3D{})
 	out[9], out[10], out[11] = legs[3].ServoValues(spider.Point3D{})
