@@ -18,14 +18,6 @@ import (
 	"testing"
 )
 
-func TestGetServos(t *testing.T) {
-	servos := GetServos()
-	want := 12
-	if len(servos) != want {
-		t.Fatalf("GetServos() returned %d servos, want %d", len(servos), want)
-	}
-}
-
 func TestPin(t *testing.T) {
 	s := Servo{
 		pin: 42,
