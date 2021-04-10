@@ -14,6 +14,8 @@
 
 package spider
 
+import "math"
+
 type LegPosition uint8
 type Joint uint8
 
@@ -27,21 +29,16 @@ const (
 
 // Servo connection order, within a leg.
 const (
-	Hip Joint = iota
-	Coxa
-	Tibia
+	BodyCoxa Joint = iota
+	CoxaFemur
+	FemurTibia
 )
 
 const (
-	OneMillimeter int16 = 32 // Allowing approximate +/- one meter in a 16-bit integer.
-	HipLength           = 23*OneMillimeter + OneMillimeter/2
-	CoxaLength          = 38 * OneMillimeter
-	TibiaLength         = 81 * OneMillimeter
+	CoxaLength  = 23.5
+	FemurLength = 38.0
+	TibiaLength = 81.0
 )
-
-type Leg struct {
-	hipPt Point3D
-}
 
 // Represents a 3D point in space.
 // X is towards the right of the robot.
@@ -49,15 +46,18 @@ type Leg struct {
 // Z is towards the top of the robot.
 // Distances are expressed in 1/32 of a millimeter.
 type Point3D struct {
-	X, Y, Z int16
+	X, Y, Z float64
+}
+
+type Leg struct {
+	hipPt Point3D
 }
 
 func (l *Leg) init(pos LegPosition) {
-	// The canonical zero position of the toe is with the hip and coxa horizontal and the tibia vertical.
-	// Therefore the hip is displaced by (hip+coxa)/sqrt(2), using Pythagoras' theorem.
-	// 16/23 is an approximation of 1/sqrt(2).
-	hipOffset := (HipLength + CoxaLength) * 16 / 23
-	var hipX, hipY int16
+	// The canonical zero position of the toe is with the coxa at "45 degrees", the femur horizontal, and the tibia vertical.
+	// Therefore the hip joint is displaced by (coxa+femur)/sqrt(2), using Pythagoras' theorem.
+	hipOffset := (CoxaLength + FemurLength) * math.Sqrt(2)
+	var hipX, hipY float64
 	switch pos {
 	case FrontRight:
 		hipX = -hipOffset
@@ -79,10 +79,34 @@ func (l *Leg) init(pos LegPosition) {
 	}
 }
 
-// func (l *Leg) ServoValues(toePt Point3D) (uint16, uint16, uint16) {
-// 	// TODO: Switch to integer math.
-// 	hipDeg := int16(math.Atan2(float64(toePt.X-l.hipPt.X), float64(toePt.Y-l.hipPt.Y)) + 0.5)
-// 	var coxaDeg int16 = 90
-// 	var tibiaDeg int16 = 90
-// 	return l.servos[0].DegreesToMicros(hipDeg), l.servos[1].DegreesToMicros(coxaDeg), l.servos[2].DegreesToMicros(tibiaDeg)
-// }
+func (l *Leg) JointAngles(toePt Point3D) (float64, float64, float64) {
+	// Hip angle is measured counter-clockwise from a line projecting out from the side of the spider, so FrontLeft/BackRight angles are negative.
+	bodyCoxaAngle := math.Atan2(toePt.X-l.hipPt.X, toePt.Y-l.hipPt.Y)
+
+	// Total horizontal distance from hip to toe.
+	horizReach := math.Sqrt((toePt.X-l.hipPt.X)*(toePt.X-l.hipPt.X) + (toePt.Y-l.hipPt.Y)*(toePt.Y-l.hipPt.Y))
+	// Femur+tibia horizontal reach.
+	ftHorizReach := horizReach - CoxaLength
+	// Femur+tibia reach in 3D space.
+	// This gives us a triangle with sides (FemurLength, TibiaLength, ftReach).
+	ftReach := math.Sqrt(ftHorizReach*ftHorizReach + (toePt.Z-l.hipPt.Z)*(toePt.Z-l.hipPt.Z))
+
+	// Femur-Tibia angle is measured counter-clockwise from the femur, so it will always be positive, and bigger numbers represent a further reach.
+	// Solve using the law of cosines.
+	// c^2 = a^2 + b^2 - 2*a*b*cos(C)
+	// 2*a*b*cos(C) =  a^2 + b^2 - c^2
+	// cos(C) = (a^2 + b^2 - c^2) / (2*a*b)
+	ftNum := FemurLength*FemurLength + TibiaLength*TibiaLength - ftReach*ftReach
+	ftDenom := 2.0 * FemurLength * TibiaLength
+	femurTibiaAngle := math.Acos(ftNum / ftDenom)
+
+	// Coxa-Femur angle is measured counter-clockwise from horizontal, so up is positive and down is negative.
+	// angle1 := math.Atan2(l.z, horizReachFromCoxa)
+	// angle2 := math.Acos((femurLength*femurLength +
+	// 	absoluteReachFromCoxa*absoluteReachFromCoxa -
+	// 	tibiaLength*tibiaLength) /
+	// 	(2.0 * femurLength * absoluteReachFromCoxa))
+	// knee := 180 - (angle1+angle2)*180/math.Pi
+	coxaFemurAngle := math.Pi / 2.0
+	return bodyCoxaAngle, coxaFemurAngle, femurTibiaAngle
+}
