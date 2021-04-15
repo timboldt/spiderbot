@@ -53,6 +53,7 @@ type Point3D struct {
 
 type Leg struct {
 	hipPt Point3D
+	toePt Point3D
 }
 
 func (l *Leg) init(pos LegPosition) {
@@ -81,17 +82,21 @@ func (l *Leg) init(pos LegPosition) {
 	}
 }
 
-func (l *Leg) JointAngles(toePt Point3D) (float64, float64, float64) {
+func (l *Leg) SetToePoint(pt Point3D) {
+	l.toePt = pt
+}
+
+func (l *Leg) JointAngles() (float64, float64, float64) {
 	// Hip angle is measured counter-clockwise from a line projecting out from the side of the spider, so FrontLeft/BackRight angles are negative.
-	bodyCoxaAngle := math.Atan2(toePt.Y-l.hipPt.Y, toePt.X-l.hipPt.X)
+	bodyCoxaAngle := math.Atan2(l.toePt.Y-l.hipPt.Y, l.toePt.X-l.hipPt.X)
 
 	// Total horizontal distance from hip to toe.
-	horizReach := math.Sqrt((toePt.X-l.hipPt.X)*(toePt.X-l.hipPt.X) + (toePt.Y-l.hipPt.Y)*(toePt.Y-l.hipPt.Y))
+	horizReach := math.Sqrt((l.toePt.X-l.hipPt.X)*(l.toePt.X-l.hipPt.X) + (l.toePt.Y-l.hipPt.Y)*(l.toePt.Y-l.hipPt.Y))
 	// Femur+tibia horizontal reach.
 	ftHorizReach := horizReach - CoxaLength
 	// Femur+tibia reach in 3D space.
 	// This gives us a triangle with sides (FemurLength, TibiaLength, ftReach).
-	ftReach := math.Sqrt(ftHorizReach*ftHorizReach + (toePt.Z-l.hipPt.Z)*(toePt.Z-l.hipPt.Z))
+	ftReach := math.Sqrt(ftHorizReach*ftHorizReach + (l.toePt.Z-l.hipPt.Z)*(l.toePt.Z-l.hipPt.Z))
 
 	// Solve for angles, using the law of cosines.
 	//   c^2 = a^2 + b^2 - 2*a*b*cos(C)
@@ -109,7 +114,7 @@ func (l *Leg) JointAngles(toePt Point3D) (float64, float64, float64) {
 	cosDenom = 2.0 * ftReach * FemurLength
 	femurReachAngle := math.Acos(cosNum / cosDenom)
 	// Second, find the angle between horizontal and the imaginary line from the coxa-femur joint down to the  toe.
-	reachAngle := math.Atan2(toePt.Z-l.hipPt.Z, ftHorizReach)
+	reachAngle := math.Atan2(l.toePt.Z-l.hipPt.Z, ftHorizReach)
 	coxaFemurAngle := femurReachAngle + reachAngle
 
 	// Femur-Tibia angle is measured counter-clockwise from the femur, so it will always be positive, and bigger numbers represent a further reach.

@@ -14,25 +14,30 @@
 
 package spider
 
+import "math"
+
 type Servo struct {
-	pin             byte
-	minVal          uint16
-	maxVal          uint16
-	ninetyDegMicros int16
-	reversed        bool
+	pin           byte
+	minVal        uint16
+	maxVal        uint16
+	zeroDegMicros int16
+	reversed      bool
 }
 
 func (s Servo) Pin() byte {
 	return s.pin
 }
 
+func (s *Servo) RadiansToMicros(rad float64) uint16 {
+	deg := rad / math.Pi * 180
+	return s.DegreesToMicros(int16(math.Round(deg)))
+}
+
 func (s *Servo) DegreesToMicros(deg int16) uint16 {
 	if s.reversed {
-		deg = 90 - deg
-	} else {
-		deg = deg - 90
+		deg = -deg
 	}
-	micros := uint16(deg*100/9 + s.ninetyDegMicros)
+	micros := uint16(deg*100/9 + s.zeroDegMicros)
 	if micros > s.maxVal {
 		return s.maxVal
 	}

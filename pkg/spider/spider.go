@@ -14,7 +14,14 @@
 
 package spider
 
+import (
+	"fmt"
+
+	"github.com/timboldt/spiderbot/pkg/pca9685"
+)
+
 type Spider struct {
+	pwm    pca9685.Device
 	servos [12]Servo
 	legs   [4]Leg
 }
@@ -24,7 +31,8 @@ var (
 )
 
 // Init initializes the Spider instance, which is a simple singleton.
-func Init() *Spider {
+func Init(pwm pca9685.Device) *Spider {
+	theSpider.pwm = pwm
 	theSpider.initServos()
 	for i := 0; i < 4; i++ {
 		theSpider.legs[i].init(LegPosition(i))
@@ -38,89 +46,114 @@ func servoId(pos LegPosition, joint Joint) uint8 {
 
 func (s *Spider) initServos() {
 	s.servos = [12]Servo{
+		// FR BC
 		{
-			pin:             servoId(FrontRight, BodyCoxa),
-			minVal:          1500,
-			maxVal:          2500,
-			ninetyDegMicros: 1700,
-			reversed:        true,
+			pin:           0,
+			minVal:        1500,
+			maxVal:        2500,
+			zeroDegMicros: 1700,
+			reversed:      false,
 		},
+		// FR CF
 		{
-			pin:             servoId(FrontRight, CoxaFemur),
-			minVal:          1200,
-			maxVal:          2600,
-			ninetyDegMicros: 2111,
-			reversed:        false,
+			pin:           1,
+			minVal:        1200,
+			maxVal:        2600,
+			zeroDegMicros: 2111,
+			reversed:      false,
 		},
+		// FR FT
 		{
-			pin:             servoId(FrontRight, FemurTibia),
-			minVal:          1400,
-			maxVal:          2500,
-			ninetyDegMicros: 1900,
-			reversed:        false,
+			pin:           2,
+			minVal:        1400,
+			maxVal:        2500,
+			zeroDegMicros: 900,
+			reversed:      false,
 		},
+		// FL BC
 		{
-			pin:             servoId(FrontLeft, BodyCoxa),
-			minVal:          700,
-			maxVal:          1700,
-			ninetyDegMicros: 1611,
-			reversed:        false,
+			pin:           3,
+			minVal:        700,
+			maxVal:        1700,
+			zeroDegMicros: -400,
+			reversed:      false,
 		},
+		// FL CF
 		{
-			pin:             servoId(FrontLeft, CoxaFemur),
-			minVal:          500,
-			maxVal:          1900,
-			ninetyDegMicros: 1045,
-			reversed:        true,
+			pin:           4,
+			minVal:        500,
+			maxVal:        1900,
+			zeroDegMicros: 1045,
+			reversed:      true,
 		},
+		// FL FT
 		{
-			pin:             servoId(FrontLeft, FemurTibia),
-			minVal:          1300,
-			maxVal:          2400,
-			ninetyDegMicros: 1900,
-			reversed:        true,
+			pin:           5,
+			minVal:        1300,
+			maxVal:        2400,
+			zeroDegMicros: 2800,
+			reversed:      true,
 		},
+		// BR BC
 		{
-			pin:             servoId(BackRight, BodyCoxa),
-			minVal:          700,
-			maxVal:          1700,
-			ninetyDegMicros: 1800,
-			reversed:        false,
+			pin:           6,
+			minVal:        700,
+			maxVal:        1700,
+			zeroDegMicros: 1800,
+			reversed:      false,
 		},
+		// BR CF
 		{
-			pin:             servoId(BackRight, CoxaFemur),
-			minVal:          700,
-			maxVal:          2100,
-			ninetyDegMicros: 1189,
-			reversed:        true,
+			pin:           7,
+			minVal:        700,
+			maxVal:        2100,
+			zeroDegMicros: 1189,
+			reversed:      true,
 		},
+		// BR FT
 		{
-			pin:             servoId(BackRight, FemurTibia),
-			minVal:          1500,
-			maxVal:          2500,
-			ninetyDegMicros: 2155,
-			reversed:        true,
+			pin:           8,
+			minVal:        1500,
+			maxVal:        2500,
+			zeroDegMicros: 3100,
+			reversed:      true,
 		},
+		// BL BC
 		{
-			pin:             servoId(BackLeft, BodyCoxa),
-			minVal:          1400,
-			maxVal:          2400,
-			ninetyDegMicros: 2500,
-			reversed:        false,
+			pin:           9,
+			minVal:        1400,
+			maxVal:        2400,
+			zeroDegMicros: 3500,
+			reversed:      false,
 		},
+		// BL CF
 		{
-			pin:             servoId(BackLeft, CoxaFemur),
-			minVal:          1000,
-			maxVal:          2200,
-			ninetyDegMicros: 1600,
-			reversed:        false,
+			pin:           10,
+			minVal:        1000,
+			maxVal:        2200,
+			zeroDegMicros: 1600,
+			reversed:      false,
 		},
+		// BL FT
 		{
-			pin:             servoId(BackLeft, FemurTibia),
-			minVal:          1100,
-			maxVal:          2200,
-			ninetyDegMicros: 1600,
-			reversed:        false,
+			pin:           11,
+			minVal:        1100,
+			maxVal:        2200,
+			zeroDegMicros: 600,
+			reversed:      false,
 		},
+	}
+}
+
+func (s *Spider) Move() {
+	fmt.Println("Moving!")
+	for leg := LegPosition(0); leg < LegPosition(4); leg++ {
+		bc, cf, ft := s.legs[leg].JointAngles()
+		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, BodyCoxa), bc, s.servos[servoId(leg, BodyCoxa)].RadiansToMicros(bc))
+		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, CoxaFemur), cf, s.servos[servoId(leg, CoxaFemur)].RadiansToMicros(cf))
+		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, FemurTibia), ft, s.servos[servoId(leg, FemurTibia)].RadiansToMicros(ft))
+		s.pwm.SetPin(servoId(leg, BodyCoxa), s.servos[servoId(leg, BodyCoxa)].RadiansToMicros(bc))
+		s.pwm.SetPin(servoId(leg, CoxaFemur), s.servos[servoId(leg, CoxaFemur)].RadiansToMicros(cf))
+		s.pwm.SetPin(servoId(leg, FemurTibia), s.servos[servoId(leg, FemurTibia)].RadiansToMicros(ft))
 	}
 }

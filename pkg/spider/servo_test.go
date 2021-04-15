@@ -31,10 +31,10 @@ func TestPin(t *testing.T) {
 
 func TestDegreesToMicros(t *testing.T) {
 	s := Servo{
-		minVal:          800,
-		maxVal:          2200,
-		ninetyDegMicros: 1500,
-		reversed:        false,
+		minVal:        800,
+		maxVal:        2200,
+		zeroDegMicros: 500,
+		reversed:      false,
 	}
 	tests := []struct {
 		deg  int16

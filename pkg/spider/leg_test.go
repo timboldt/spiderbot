@@ -52,7 +52,8 @@ func TestJointAnglesAtNullPoint(t *testing.T) {
 	for lp := LegPosition(0); lp <= LegPosition(3); lp++ {
 		l.init(lp)
 		toePt := Point3D{X: 0, Y: 0, Z: 0}
-		bc, cf, ft = l.JointAngles(toePt)
+		l.SetToePoint(toePt)
+		bc, cf, ft = l.JointAngles()
 		got = approxRadToDeg(bc)
 		want = 45
 		if got != want {
@@ -80,7 +81,8 @@ func TestJointAnglesSideOfBody(t *testing.T) {
 		l.init(lp)
 		// To the side, pulled in a bit, and down.
 		toePt := Point3D{X: l.hipPt.X / 2.0, Y: l.hipPt.Y, Z: -20}
-		bc, cf, ft = l.JointAngles(toePt)
+		l.SetToePoint(toePt)
+		bc, cf, ft = l.JointAngles()
 		got = approxRadToDeg(bc)
 		want = 0
 		if got != want {
@@ -108,7 +110,8 @@ func TestJointAnglesAheadOrBehindBody(t *testing.T) {
 		l.init(lp)
 		// To the front (or back), stretched out a bit, and above the hip.
 		toePt := Point3D{X: l.hipPt.X, Y: -2.0 / 3.0 * l.hipPt.Y, Z: l.hipPt.Z + 10}
-		bc, cf, ft = l.JointAngles(toePt)
+		l.SetToePoint(toePt)
+		bc, cf, ft = l.JointAngles()
 		got = approxRadToDeg(bc)
 		want = 90
 		if got != want {
