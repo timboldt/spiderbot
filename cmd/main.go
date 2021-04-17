@@ -18,12 +18,15 @@ package main
 import (
 	"fmt"
 	"machine"
+	"math"
+	"time"
 
 	"github.com/timboldt/spiderbot/pkg/pca9685"
 	"github.com/timboldt/spiderbot/pkg/spider"
 )
 
 func main() {
+	time.Sleep(100 * time.Millisecond)
 	//
 	// === Initialize hardware ===
 	//
@@ -36,52 +39,57 @@ func main() {
 		fmt.Printf("configure failed: %v", err)
 	}
 
-	spider := spider.Init(pwm)
-	inbuf := make([]byte, 64)
-	inbufIdx := 0
-	uart := machine.UART0
+	spdr := spider.Init(pwm)
+	// inbuf := make([]byte, 64)
+	// inbufIdx := 0
+	// uart := machine.UART0
+	theta := 0.0
 	for {
-		if uart.Buffered() > 0 {
-			data, _ := uart.ReadByte()
-			// Echo what the user types.
-			uart.WriteByte(data)
+		spdr.SendCommandsToServos()
+		time.Sleep(10 * time.Millisecond)
+		theta += math.Pi / 50
+		spdr.SetAll(spider.Point3D{math.Sin(theta) * 20, math.Cos(theta) * 20, math.Sin(theta/2) * 5})
+		// if uart.Buffered() > 0 {
+		// 	data, _ := uart.ReadByte()
+		// 	// Echo what the user types.
+		// 	uart.WriteByte(data)
 
-			switch data {
-			case '\n':
-				fallthrough
-			case '\r':
-				spider.Move()
-				// if inbufIdx > 0 {
-				// 	if inbuf[0] == 's' && inbufIdx > 1 {
-				// 		val, err := strconv.Atoi(string(inbuf[1:inbufIdx]))
-				// 		if err != nil {
-				// 			fmt.Println(err)
-				// 		} else {
-				// 			currServo = servos[val]
-				// 			micros := currServo.DegreesToMicros(90)
-				// 			fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
-				// 			if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
-				// 				fmt.Printf("set servo PWM failed: %v", err)
-				// 			}
-				// 		}
-				// 	} else {
-				// 		val, err := strconv.Atoi(string(inbuf[:inbufIdx]))
-				// 		if err != nil {
-				// 			fmt.Println(err)
-				// 		} else {
-				// 			micros := currServo.DegreesToMicros(int16(val))
-				// 			fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
-				// 			if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
-				// 				fmt.Printf("set servo PWM failed: %v", err)
-				// 			}
-				// 		}
-				// 	}
-				// 	inbufIdx = 0
-				// }
-			default:
-				inbuf[inbufIdx] = data
-				inbufIdx++
-			}
-		}
+		// 	switch data {
+		// 	case '\n':
+		// 		fallthrough
+		// 	case '\r':
+		// 		spider.Move()
+		// 		// if inbufIdx > 0 {
+		// 		// 	if inbuf[0] == 's' && inbufIdx > 1 {
+		// 		// 		val, err := strconv.Atoi(string(inbuf[1:inbufIdx]))
+		// 		// 		if err != nil {
+		// 		// 			fmt.Println(err)
+		// 		// 		} else {
+		// 		// 			currServo = servos[val]
+		// 		// 			micros := currServo.DegreesToMicros(90)
+		// 		// 			fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
+		// 		// 			if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
+		// 		// 				fmt.Printf("set servo PWM failed: %v", err)
+		// 		// 			}
+		// 		// 		}
+		// 		// 	} else {
+		// 		// 		val, err := strconv.Atoi(string(inbuf[:inbufIdx]))
+		// 		// 		if err != nil {
+		// 		// 			fmt.Println(err)
+		// 		// 		} else {
+		// 		// 			micros := currServo.DegreesToMicros(int16(val))
+		// 		// 			fmt.Printf("Setting pin %d to %d\n", currServo.Pin(), micros)
+		// 		// 			if err := pwm.SetPin(currServo.Pin(), micros); err != nil {
+		// 		// 				fmt.Printf("set servo PWM failed: %v", err)
+		// 		// 			}
+		// 		// 		}
+		// 		// 	}
+		// 		// 	inbufIdx = 0
+		// 		// }
+		// 	default:
+		// 		inbuf[inbufIdx] = data
+		// 		inbufIdx++
+		// 	}
+		// }
 	}
 }

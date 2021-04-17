@@ -15,8 +15,6 @@
 package spider
 
 import (
-	"fmt"
-
 	"github.com/timboldt/spiderbot/pkg/pca9685"
 )
 
@@ -145,15 +143,21 @@ func (s *Spider) initServos() {
 	}
 }
 
-func (s *Spider) Move() {
-	fmt.Println("Moving!")
+func (s *Spider) SendCommandsToServos() {
+	// fmt.Println("Moving!")
 	for leg := LegPosition(0); leg < LegPosition(4); leg++ {
 		bc, cf, ft := s.legs[leg].JointAngles()
-		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, BodyCoxa), bc, s.servos[servoId(leg, BodyCoxa)].RadiansToMicros(bc))
-		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, CoxaFemur), cf, s.servos[servoId(leg, CoxaFemur)].RadiansToMicros(cf))
-		fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, FemurTibia), ft, s.servos[servoId(leg, FemurTibia)].RadiansToMicros(ft))
+		// fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, BodyCoxa), bc, s.servos[servoId(leg, BodyCoxa)].RadiansToMicros(bc))
+		// fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, CoxaFemur), cf, s.servos[servoId(leg, CoxaFemur)].RadiansToMicros(cf))
+		// fmt.Printf("Leg: %d Servo: %d Angle: %f usec: %d\n", leg, servoId(leg, FemurTibia), ft, s.servos[servoId(leg, FemurTibia)].RadiansToMicros(ft))
 		s.pwm.SetPin(servoId(leg, BodyCoxa), s.servos[servoId(leg, BodyCoxa)].RadiansToMicros(bc))
 		s.pwm.SetPin(servoId(leg, CoxaFemur), s.servos[servoId(leg, CoxaFemur)].RadiansToMicros(cf))
 		s.pwm.SetPin(servoId(leg, FemurTibia), s.servos[servoId(leg, FemurTibia)].RadiansToMicros(ft))
+	}
+}
+
+func (s *Spider) SetAll(pt Point3D) {
+	for leg := LegPosition(0); leg < LegPosition(4); leg++ {
+		s.legs[leg].toePt = pt
 	}
 }
