@@ -23,16 +23,20 @@
 
 class Spider {
    public:
-    Spider(Adafruit_PWMServoDriver *pwm, Servo *_servos);
+    Spider();
 
-    void sendUpdatesToServos();
+    // sendUpdatesToServos calculates all servo angles and updates the PWM
+    // device.
+    // pwm must not be null.
+    // servos must point to an array of 12 servos.
+    void sendUpdatesToServos(Adafruit_PWMServoDriver *pwm, Servo *servos);
+
     void setToePositionAbsolute(Leg::Position leg, Point3D pt);
+    
     void setToePositionRelative(Leg::Position leg, Point3D vect);
 
    private:
     uint8_t servoID(Leg::Position leg, Leg::Joint joint);
 
-    Adafruit_PWMServoDriver *const _pwm;  // Does not own.
     Leg _legs[4];
-    Servo *const _servos;  // Does not own.
 };

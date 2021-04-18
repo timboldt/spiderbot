@@ -14,11 +14,14 @@
 
 #include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
+#include <math.h>
 
 #include "src/spider/spider.h"
 
 Adafruit_PWMServoDriver pwm;
-Spider spider(&pwm, std::move(servo_config));
+Spider spider;
+
+float theta = 0.0;
 
 void setup(void) {
     Serial.begin(115200);
@@ -27,11 +30,12 @@ void setup(void) {
     }
     pwm.begin();
     pwm.setPWMFreq(50);  // Analog servos run at 50Hz.
-    spider.sendUpdatesToServos();
 }
 
 void loop(void) {
-    // for (int i = 0; i < 12; i++) {
-    //     pwm.writeMicroseconds(i, 1500);
-    // }
+    delay(25);
+    spider.sendUpdatesToServos(&pwm, servo_config);
+    theta += PI / 50.0;
+    spider.setToePositionAbsolute(
+        Leg::kFrontRight, {sinf(theta) * 20.0f, cosf(theta) * 20.0f, 0.0});
 }

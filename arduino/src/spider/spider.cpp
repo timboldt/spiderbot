@@ -1,14 +1,10 @@
 #include "spider.h"
 
-Spider::Spider(Adafruit_PWMServoDriver *pwm, Servo *servos)
-    : _pwm(pwm),
-      _legs({Leg(Leg::kFrontRight), Leg(Leg::kFrontLeft), Leg(Leg::kBackRight),
-             Leg(Leg::kBackLeft)}),
-      _servos(servos) {
-    // TODO
-}
+Spider::Spider()
+    : _legs({Leg(Leg::kFrontRight), Leg(Leg::kFrontLeft), Leg(Leg::kBackRight),
+             Leg(Leg::kBackLeft)}) {}
 
-void Spider::sendUpdatesToServos() {
+void Spider::sendUpdatesToServos(Adafruit_PWMServoDriver *pwm, Servo *servos) {
     for (size_t leg = 0; leg < 4; leg++) {
         float bc;
         float cf;
@@ -16,11 +12,11 @@ void Spider::sendUpdatesToServos() {
         this->_legs[leg].getJointAngles(&bc, &cf, &ft);
         uint8_t servo;
         servo = servoID(Leg::Position(leg), Leg::kBodyCoxa);
-        this->_pwm->writeMicroseconds(servo, this->_servos[servo].degreesToMicros(bc));
+        pwm->writeMicroseconds(servo, servos[servo].degreesToMicros(bc));
         servo = servoID(Leg::Position(leg), Leg::kCoxaFemur);
-        this->_pwm->writeMicroseconds(servo, this->_servos[servo].degreesToMicros(cf));
+        pwm->writeMicroseconds(servo, servos[servo].degreesToMicros(cf));
         servo = servoID(Leg::Position(leg), Leg::kFemurTibia);
-        this->_pwm->writeMicroseconds(servo, this->_servos[servo].degreesToMicros(ft));
+        pwm->writeMicroseconds(servo, servos[servo].degreesToMicros(ft));
     }
 }
 
@@ -33,5 +29,5 @@ void Spider::setToePositionRelative(Leg::Position leg, Point3D vect) {
 }
 
 uint8_t Spider::servoID(Leg::Position leg, Leg::Joint joint) {
-    return uint8_t(leg)*3 + uint8_t(joint);
+    return uint8_t(leg) * 3 + uint8_t(joint);
 }
