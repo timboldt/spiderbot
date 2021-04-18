@@ -28,3 +28,6 @@ class Servo {
     int16_t _zero_degrees;
     bool _reversed;
 };
+
+// Declared in config_servos.cpp.
+extern Servo servo_config[12];

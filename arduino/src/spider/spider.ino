@@ -16,6 +16,7 @@
 
 #include "leg.h"
 #include "servo.h"
+#include "spider.h"
 
 test(Servo, DegreesToMicros) {
     Servo s(800, 2200, 500, false);

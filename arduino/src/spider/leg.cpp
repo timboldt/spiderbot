@@ -42,7 +42,13 @@ Leg::Leg(Position leg_pos) {
     }
 }
 
-void Leg::setToePoint(Point3D toe_pt) { this->_toe_pt = toe_pt; }
+void Leg::setToePoint(Point3D pt) { this->_toe_pt = pt; }
+
+void Leg::moveToePoint(Point3D vect) {
+    this->_toe_pt.x += vect.x;
+    this->_toe_pt.y += vect.y;
+    this->_toe_pt.z += vect.z;
+}
 
 void Leg::getJointAngles(float *bc, float *cf, float *ft) {
     // Hip angle is measured counter-clockwise from a line projecting out from

@@ -31,7 +31,7 @@ typedef struct {
 // joined to the body at the hip point and the tibia touching the floor at the
 // toe point. The canonical toe point is (0,0,0), representing a leg that is
 // pointing out from the body corner at a 45' angle, the femur horizontal and
-// the tibia vertical. 
+// the tibia vertical.
 class Leg {
    public:
     enum Position {
@@ -41,7 +41,7 @@ class Leg {
         kBackLeft,
     };
 
-    enum Join {
+    enum Joint {
         kBodyCoxa,
         kCoxaFemur,
         kFemurTibia,
@@ -49,7 +49,8 @@ class Leg {
 
     Leg(Position leg_pos);
 
-    void setToePoint(Point3D toe_pt);
+    void setToePoint(Point3D pt);
+    void moveToePoint(Point3D vect);
     void getJointAngles(float *bc, float *cf, float *ft);
 
     static constexpr float coxa_len = 23.5f;
