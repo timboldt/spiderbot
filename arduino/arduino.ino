@@ -21,8 +21,6 @@
 Adafruit_PWMServoDriver pwm;
 Spider spider;
 
-float theta = 0.0;
-
 void setup(void) {
     Serial.begin(115200);
     while (!Serial) {
@@ -33,9 +31,44 @@ void setup(void) {
 }
 
 void loop(void) {
-    delay(25);
-    spider.sendUpdatesToServos(&pwm, servo_config);
-    theta += PI / 50.0;
-    spider.setToePositionAbsolute(
-        Leg::kFrontRight, {sinf(theta) * 20.0f, cosf(theta) * 20.0f, 0.0});
+    float theta = 0.0;
+    for (int i = 0; i < 100; i++) {
+        delay(25);
+        spider.sendUpdatesToServos(&pwm, servo_config);
+        theta += PI / 50.0;
+        spider.setToePositionAbsolute(Leg::kFrontRight,
+                                      {sinf(theta) * 20.0f, 0.0, 0.0});
+        spider.setToePositionAbsolute(Leg::kFrontLeft,
+                                      {sinf(theta) * 20.0f, 0.0, 0.0});
+        spider.setToePositionAbsolute(Leg::kBackRight,
+                                      {sinf(theta) * 20.0f, 0.0, 0.0});
+        spider.setToePositionAbsolute(Leg::kBackLeft,
+                                      {sinf(theta) * 20.0f, 0.0, 0.0});
+    }
+    for (int i = 0; i < 100; i++) {
+        delay(25);
+        spider.sendUpdatesToServos(&pwm, servo_config);
+        theta += PI / 50.0;
+        spider.setToePositionAbsolute(Leg::kFrontRight,
+                                      {0.0, sinf(theta) * 20.0f, 0.0});
+        spider.setToePositionAbsolute(Leg::kFrontLeft,
+                                      {0.0, sinf(theta) * 20.0f, 0.0});
+        spider.setToePositionAbsolute(Leg::kBackRight,
+                                      {0.0, sinf(theta) * 20.0f, 0.0});
+        spider.setToePositionAbsolute(Leg::kBackLeft,
+                                      {0.0, sinf(theta) * 20.0f, 0.0});
+    }
+    for (int i = 0; i < 100; i++) {
+        delay(25);
+        spider.sendUpdatesToServos(&pwm, servo_config);
+        theta += PI / 50.0;
+        spider.setToePositionAbsolute(Leg::kFrontRight,
+                                      {0.0, 0.0, sinf(theta) * 20.0f});
+        spider.setToePositionAbsolute(Leg::kFrontLeft,
+                                      {0.0, 0.0, sinf(theta) * 20.0f});
+        spider.setToePositionAbsolute(Leg::kBackRight,
+                                      {0.0, 0.0, sinf(theta) * 20.0f});
+        spider.setToePositionAbsolute(Leg::kBackLeft,
+                                      {0.0, 0.0, sinf(theta) * 20.0f});
+    }
 }
