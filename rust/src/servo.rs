@@ -1,17 +1,33 @@
-struct Servo {
-    min_micros: u16,
-    max_micros: u16,
-    zero_degrees: i16,
-    reversed: bool,
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use micromath::F32Ext;
+
+pub struct Servo {
+    pub min_micros: u16,
+    pub max_micros: u16,
+    pub zero_degrees: i16,
+    pub reversed: bool,
 }
 
 impl Servo {
-    fn degrees_to_micros(&self, degrees: f32) -> u16 {
-        let micros_per_deg = 100f32 / 9f32;
+    pub fn degrees_to_micros(&self, degrees: f32) -> u16 {
+        let micros_per_deg = 100.0 / 9.0;
         let micros = if self.reversed {
-            (-micros_per_deg * degrees).round() as i16
+            F32Ext::round(-micros_per_deg * degrees) as i16
         } else {
-            (micros_per_deg * degrees).round() as i16
+            F32Ext::round(micros_per_deg * degrees) as i16
         };
         core::cmp::max(
             core::cmp::min(
@@ -35,12 +51,12 @@ mod tests {
             zero_degrees: 500,
             reversed: false,
         };
-        assert_eq!(s.degrees_to_micros(-10f32), 800);
-        assert_eq!(s.degrees_to_micros(0f32), 800);
-        assert_eq!(s.degrees_to_micros(10f32), 800);
-        assert_eq!(s.degrees_to_micros(45f32), 1000);
-        assert_eq!(s.degrees_to_micros(90f32), 1500);
-        assert_eq!(s.degrees_to_micros(200f32), 2200);
+        assert_eq!(s.degrees_to_micros(-10.0), 800);
+        assert_eq!(s.degrees_to_micros(0.0), 800);
+        assert_eq!(s.degrees_to_micros(10.0), 800);
+        assert_eq!(s.degrees_to_micros(45.0), 1000);
+        assert_eq!(s.degrees_to_micros(90.0), 1500);
+        assert_eq!(s.degrees_to_micros(200.0), 2200);
     }
 
     #[test]
@@ -51,12 +67,12 @@ mod tests {
             zero_degrees: 1700,
             reversed: true,
         };
-        assert_eq!(s.degrees_to_micros(-90f32), 2200);
-        assert_eq!(s.degrees_to_micros(-10f32), 1811);
-        assert_eq!(s.degrees_to_micros(0f32), 1700);
-        assert_eq!(s.degrees_to_micros(10f32), 1589);
-        assert_eq!(s.degrees_to_micros(45f32), 1200);
-        assert_eq!(s.degrees_to_micros(90f32), 700);
-        assert_eq!(s.degrees_to_micros(200f32), 200);
+        assert_eq!(s.degrees_to_micros(-90.0), 2200);
+        assert_eq!(s.degrees_to_micros(-10.0), 1811);
+        assert_eq!(s.degrees_to_micros(0.0), 1700);
+        assert_eq!(s.degrees_to_micros(10.0), 1589);
+        assert_eq!(s.degrees_to_micros(45.0), 1200);
+        assert_eq!(s.degrees_to_micros(90.0), 700);
+        assert_eq!(s.degrees_to_micros(200.0), 200);
     }
 }
