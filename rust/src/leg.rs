@@ -26,11 +26,11 @@ pub enum Position {
     BackLeft,
 }
 
-enum Joint {
-    BodyCoxa,
-    CoxaFemur,
-    FemurTibia,
-}
+// enum Joint {
+//     BodyCoxa,
+//     CoxaFemur,
+//     FemurTibia,
+// }
 
 const RAD_TO_DEG: f32 = 180.0 / 3.14159;
 
@@ -70,27 +70,25 @@ impl Leg {
     }
 
     pub fn move_toe_point(&mut self, x: f32, y: f32, z: f32) {
-        self.toe_pt = Point3D(x + self.toe_pt.0, y + self.toe_pt.1, z + self.toe_pt.2);
+        let Point3D(tx, ty, tz) = self.toe_pt;
+        self.toe_pt = Point3D(tx + x, ty + y, tz + z);
     }
 
     pub fn get_joint_angles(&self) -> (f32, f32, f32) {
+        let Point3D(hx, hy, hz) = self.hip_pt;
+        let Point3D(tx, ty, tz) = self.toe_pt;
+
         // Hip angle is measured counter-clockwise from a line projecting out from
         // the right side of the spider.
-        let bc = f32::atan2(self.toe_pt.1 - self.hip_pt.1, self.toe_pt.0 - self.hip_pt.0);
+        let bc = f32::atan2(ty - hy, tx - hx);
 
         // Total horizontal distance from hip to toe.
-        let total_horiz_reach = f32::sqrt(
-            (self.toe_pt.0 - self.hip_pt.0) * (self.toe_pt.0 - self.hip_pt.0)
-                + (self.toe_pt.1 - self.hip_pt.1) * (self.toe_pt.1 - self.hip_pt.1),
-        );
+        let total_horiz_reach = f32::sqrt((tx - hx) * (tx - hx) + (ty - hy) * (ty - hy));
         // Femur+tibia horizontal reach.
         let ft_horiz_reach = total_horiz_reach - COXA_LEN;
         // Femur+tibia reach in 3D space.
         // This gives us a triangle with sides (femur_len, tibia_len, ftReach).
-        let ft_diag_reach = f32::sqrt(
-            ft_horiz_reach * ft_horiz_reach
-                + (self.toe_pt.2 - self.hip_pt.2) * (self.toe_pt.2 - self.hip_pt.2),
-        );
+        let ft_diag_reach = f32::sqrt(ft_horiz_reach * ft_horiz_reach + (tz - hz) * (tz - hz));
 
         // Solve for angles, using the law of cosines.
         //   c^2 = a^2 + b^2 - 2*a*b*cos(C)
@@ -99,7 +97,7 @@ impl Leg {
         // Or in coding terms:
         //   cos_num = a*a + b*b - c*c
         //   cos_denom = 2*a*b
-        //   angle_c = acosf(cos_num / cos_denom)
+        //   angle_c = acosfcos_num / cos_denom)
 
         // Coxa-Femur angle is measured counter-clockwise from horizontal, so up is
         // positive and down is negative. First, find the angle between the femur
@@ -110,7 +108,7 @@ impl Leg {
 
         // Second, find the angle between horizontal and the imaginary line from the
         // coxa-femur joint down to the  toe.
-        let horiz_reach_angle = f32::atan2(self.toe_pt.2 - self.hip_pt.2, ft_horiz_reach);
+        let horiz_reach_angle = f32::atan2(tz - hz, ft_horiz_reach);
         let cf = femur_reach_angle + horiz_reach_angle;
 
         // Femur-Tibia angle is measured counter-clockwise from the femur, so it
@@ -183,23 +181,23 @@ mod tests {
         // Toe to the front (or back), stretched out a bit, and above the hip.
         let hip_offset = (COXA_LEN + FEMUR_LEN) / f32::sqrt(2.0);
         let x = hip_offset;
-        let y = -2.0/3.0 * hip_offset;
+        let y = -2.0 / 3.0 * hip_offset;
         let z = TIBIA_LEN + 10.0;
 
         let mut leg = Leg::new(Position::FrontRight);
-        leg.set_toe_point(-x, -y, z);
+        leg.move_toe_point(-x, -y, z);
         assert_tuple_approx_equal(leg.get_joint_angles(), (90.0, 145.0, 26.5));
 
         let mut leg = Leg::new(Position::FrontLeft);
-        leg.set_toe_point(x, -y, z);
+        leg.move_toe_point(x, -y, z);
         assert_tuple_approx_equal(leg.get_joint_angles(), (90.0, 145.0, 26.5));
 
         let mut leg = Leg::new(Position::BackRight);
-        leg.set_toe_point(-x, y, z);
+        leg.move_toe_point(-x, y, z);
         assert_tuple_approx_equal(leg.get_joint_angles(), (-90.0, 145.0, 26.5));
 
         let mut leg = Leg::new(Position::BackLeft);
-        leg.set_toe_point(x, y, z);
+        leg.move_toe_point(x, y, z);
         assert_tuple_approx_equal(leg.get_joint_angles(), (-90.0, 145.0, 26.5));
     }
 }
