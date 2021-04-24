@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod leg;
-mod servo;
+mod spider;
+use spider::leg;
+use spider::servo;
+use spider::Spider;
 
 fn main() {
+    let _ = Spider::new();
+
     let s = servo::Servo {
         min_micros: 800,
         max_micros: 2200,

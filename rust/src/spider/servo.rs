@@ -20,6 +20,15 @@ pub struct Servo {
 }
 
 impl Servo {
+    pub fn new(min: u16, max: u16, zero: i16, reversed: bool) -> Servo {
+        Servo {
+            min_micros: min,
+            max_micros: max,
+            zero_degrees: zero,
+            reversed: reversed,
+        }
+    }
+
     pub fn degrees_to_micros(&self, degrees: f32) -> u16 {
         let micros_per_deg = 100.0 / 9.0;
         let micros = if self.reversed {
