@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use micromath::F32Ext;
-
 // Represents a 3D point in space.
 // x is towards the right of the robot.
 // y is towards the front of the robot.
@@ -34,6 +32,8 @@ enum Joint {
     FemurTibia,
 }
 
+const RAD_TO_DEG: f32 = 180.0/3.14159;
+
 const COXA_LEN: f32 = 23.5;
 const FEMUR_LEN: f32 = 38.0;
 const TIBIA_LEN: f32 = 81.0;
@@ -53,7 +53,7 @@ impl Leg {
         // The canonical zero position of the toe is with the coxa at "45 degrees",
         // the femur horizontal, and the tibia vertical. Therefore the hip joint is
         // displaced by (coxa+femur)/sqrt(2), using Pythagoras' theorem.
-        let hip_offset = (COXA_LEN + FEMUR_LEN) / F32Ext::sqrt(2f32);
+        let hip_offset = (COXA_LEN + FEMUR_LEN) / f32::sqrt(2f32);
         Leg {
             hip_pt: match leg_pos {
                 Position::FrontRight => Point3D(-hip_offset, -hip_offset, TIBIA_LEN),
@@ -73,100 +73,100 @@ impl Leg {
         self.toe_pt = Point3D(x + self.toe_pt.0, y + self.toe_pt.1, z + self.toe_pt.2);
     }
 
-    // void Leg::getJointAngles(float *bc, float *cf, float *ft) {
-    //     // Hip angle is measured counter-clockwise from a line projecting out from
-    //     // the right side of the spider.
-    //     *bc = atan2f(this->_toe_pt.y - this->_hip_pt.y,
-    //                  this->_toe_pt.x - this->_hip_pt.x);
+    pub fn get_joint_angles(&self) -> (f32, f32, f32) {
+        // Hip angle is measured counter-clockwise from a line projecting out from
+        // the right side of the spider.
+        let bc = f32::atan2(self.toe_pt.1 - self.hip_pt.1, self.toe_pt.0 - self.hip_pt.0);
 
-    //     // Total horizontal distance from hip to toe.
-    //     float total_horiz_reach = sqrtf((this->_toe_pt.x - this->_hip_pt.x) *
-    //                                         (this->_toe_pt.x - this->_hip_pt.x) +
-    //                                     (this->_toe_pt.y - this->_hip_pt.y) *
-    //                                         (this->_toe_pt.y - this->_hip_pt.y));
-    //     // Femur+tibia horizontal reach.
-    //     float ft_horiz_reach = total_horiz_reach - coxa_len;
-    //     // Femur+tibia reach in 3D space.
-    //     // This gives us a triangle with sides (femur_len, tibia_len, ftReach).
-    //     float ft_diag_reach = sqrtf(ft_horiz_reach * ft_horiz_reach +
-    //                                 (this->_toe_pt.z - this->_hip_pt.z) *
-    //                                     (this->_toe_pt.z - this->_hip_pt.z));
+        // Total horizontal distance from hip to toe.
+        let total_horiz_reach = f32::sqrt(
+            (self.toe_pt.0 - self.hip_pt.0) * (self.toe_pt.0 - self.hip_pt.0)
+                + (self.toe_pt.1 - self.hip_pt.1) * (self.toe_pt.1 - self.hip_pt.1),
+        );
+        // Femur+tibia horizontal reach.
+        let ft_horiz_reach = total_horiz_reach - COXA_LEN;
+        // Femur+tibia reach in 3D space.
+        // This gives us a triangle with sides (femur_len, tibia_len, ftReach).
+        let ft_diag_reach = f32::sqrt(
+            ft_horiz_reach * ft_horiz_reach
+                + (self.toe_pt.2 - self.hip_pt.2) * (self.toe_pt.2 - self.hip_pt.2),
+        );
 
-    //     // Solve for angles, using the law of cosines.
-    //     //   c^2 = a^2 + b^2 - 2*a*b*cos(C)
-    //     //   2*a*b*cos(C) =  a^2 + b^2 - c^2
-    //     //   cos(C) = (a^2 + b^2 - c^2) / (2*a*b)
-    //     // Or in coding terms:
-    //     //   cos_num = a*a + b*b - c*c
-    //     //   cos_denom = 2*a*b
-    //     //   angle_c = acosf(cos_num / cos_denom)
-    //     float cos_num;
-    //     float cos_denom;
+        // Solve for angles, using the law of cosines.
+        //   c^2 = a^2 + b^2 - 2*a*b*cos(C)
+        //   2*a*b*cos(C) =  a^2 + b^2 - c^2
+        //   cos(C) = (a^2 + b^2 - c^2) / (2*a*b)
+        // Or in coding terms:
+        //   cos_num = a*a + b*b - c*c
+        //   cos_denom = 2*a*b
+        //   angle_c = acosf(cos_num / cos_denom)
 
-    //     // Coxa-Femur angle is measured counter-clockwise from horizontal, so up is
-    //     // positive and down is negative. First, find the angle between the femur
-    //     // and the imaginary line from the coxa-femur joint down to the  toe.
-    //     cos_num = ft_diag_reach * ft_diag_reach + femur_len * femur_len -
-    //               tibia_len * tibia_len;
-    //     cos_denom = 2.0f * ft_diag_reach * femur_len;
-    //     float femur_reach_angle = acosf(cos_num / cos_denom);
+        // Coxa-Femur angle is measured counter-clockwise from horizontal, so up is
+        // positive and down is negative. First, find the angle between the femur
+        // and the imaginary line from the coxa-femur joint down to the  toe.
+        let cos_num = ft_diag_reach * ft_diag_reach + FEMUR_LEN * FEMUR_LEN - TIBIA_LEN * TIBIA_LEN;
+        let cos_denom = 2.0 * ft_diag_reach * FEMUR_LEN;
+        let femur_reach_angle = f32::acos(cos_num / cos_denom);
 
-    //     // Second, find the angle between horizontal and the imaginary line from the
-    //     // coxa-femur joint down to the  toe.
-    //     float horiz_reach_angle =
-    //         atan2f(this->_toe_pt.z - this->_hip_pt.z, ft_horiz_reach);
-    //     *cf = femur_reach_angle + horiz_reach_angle;
+        // Second, find the angle between horizontal and the imaginary line from the
+        // coxa-femur joint down to the  toe.
+        let horiz_reach_angle = f32::atan2(self.toe_pt.2 - self.hip_pt.2, ft_horiz_reach);
+        let cf = femur_reach_angle + horiz_reach_angle;
 
-    //     // Femur-Tibia angle is measured counter-clockwise from the femur, so it
-    //     // will always be positive, and bigger numbers represent a further reach.
-    //     cos_num = femur_len * femur_len + tibia_len * tibia_len -
-    //               ft_diag_reach * ft_diag_reach;
-    //     cos_denom = 2.0 * femur_len * tibia_len;
-    //     *ft = acosf(cos_num / cos_denom);
+        // Femur-Tibia angle is measured counter-clockwise from the femur, so it
+        // will always be positive, and bigger numbers represent a further reach.
+        let cos_num = FEMUR_LEN * FEMUR_LEN + TIBIA_LEN * TIBIA_LEN - ft_diag_reach * ft_diag_reach;
+        let cos_denom = 2.0 * FEMUR_LEN * TIBIA_LEN;
+        let ft = f32::acos(cos_num / cos_denom);
 
-    //     // Convert radians to degrees.
-    //     *bc = *bc / M_PI * 180.0f;
-    //     *cf = *cf / M_PI * 180.0f;
-    //     *ft = *ft / M_PI * 180.0f;
-    // }
+        // Convert radians to degrees.
+        (
+            bc * RAD_TO_DEG,
+            cf * RAD_TO_DEG,
+            ft * RAD_TO_DEG,
+        )
+    }
 }
 
-// test(Leg, JointAnglesAtNullPoint) {
-//     float bc;
-//     float cf;
-//     float ft;
-//     {
-//         Leg l(Leg::kFrontRight);
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 45.0f, 0.25f);
-//         assertNear(cf, 0.0f, 0.25f);
-//         assertNear(ft, 90.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kFrontLeft);
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 135.0f, 0.25f);
-//         assertNear(cf, 0.0f, 0.25f);
-//         assertNear(ft, 90.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackRight);
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, -45.0f, 0.25f);
-//         assertNear(cf, 0.0f, 0.25f);
-//         assertNear(ft, 90.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackLeft);
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, -135.0f, 0.25f);
-//         assertNear(cf, 0.0f, 0.25f);
-//         assertNear(ft, 90.0f, 0.25f);
-//     }
-// }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn is_near(a:f32, b: f32) -> bool {
+        return (a-b).abs() < 0.25;
+    }
+
+    #[test]
+    fn test_joint_angles_at_null_point() {
+        let leg = Leg::new(Position::FrontRight);
+        let (bc,cf,ft) = leg.get_joint_angles();
+        assert!(is_near(bc, 45.0), "{} not near {}", bc, 45.0);
+        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
+        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+
+        let leg = Leg::new(Position::FrontLeft);
+        let (bc,cf,ft) = leg.get_joint_angles();
+        assert!(is_near(bc, 135.0), "{} not near {}", bc, 135.0);
+        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
+        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+
+        let leg = Leg::new(Position::BackRight);
+        let (bc,cf,ft) = leg.get_joint_angles();
+        assert!(is_near(bc, -45.0), "{} not near {}", bc, -45.0);
+        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
+        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+
+        let leg = Leg::new(Position::BackLeft);
+        let (bc,cf,ft) = leg.get_joint_angles();
+        assert!(is_near(bc, -135.0), "{} not near {}", bc, -135.0);
+        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
+        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+    }
+}
 
 // test(Leg, JointAnglesSideOfBody) {
-//     float hip_offset = (Leg::coxa_len + Leg::femur_len) / sqrtf(2.0f);
+//     float hip_offset = (Leg::coxa_len + Leg::FEMUR_LEN) / sqrtf(2.0f);
 
 //     float bc;
 //     float cf;
@@ -210,7 +210,7 @@ impl Leg {
 // }
 
 // test(Leg, JointAnglesAheadOrBehindBody) {
-//     float hip_offset = (Leg::coxa_len + Leg::femur_len) / sqrtf(2.0f);
+//     float hip_offset = (Leg::coxa_len + Leg::FEMUR_LEN) / sqrtf(2.0f);
 
 //     float bc;
 //     float cf;
@@ -221,7 +221,7 @@ impl Leg {
 //         l.setToePoint(Point3D{
 //             x : -hip_offset,
 //             y : 2.0f / 3.0f * hip_offset,
-//             Leg::tibia_len + 10.0f
+//             Leg::TIBIA_LEN + 10.0f
 //         });
 //         l.getJointAngles(&bc, &cf, &ft);
 //         assertNear(bc, 90.0f, 0.25f);
@@ -234,7 +234,7 @@ impl Leg {
 //         l.setToePoint(Point3D{
 //             x : hip_offset,
 //             y : 2.0f / 3.0f * hip_offset,
-//             Leg::tibia_len + 10.0f
+//             Leg::TIBIA_LEN + 10.0f
 //         });
 //         l.getJointAngles(&bc, &cf, &ft);
 //         assertNear(bc, 90.0f, 0.25f);
@@ -247,7 +247,7 @@ impl Leg {
 //         l.setToePoint(Point3D{
 //             x : -hip_offset,
 //             y : -2.0f / 3.0f * hip_offset,
-//             Leg::tibia_len + 10.0f
+//             Leg::TIBIA_LEN + 10.0f
 //         });
 //         l.getJointAngles(&bc, &cf, &ft);
 //         assertNear(bc, -90.0f, 0.25f);
@@ -260,7 +260,7 @@ impl Leg {
 //         l.setToePoint(Point3D{
 //             x : hip_offset,
 //             y : -2.0f / 3.0f * hip_offset,
-//             Leg::tibia_len + 10.0f
+//             Leg::TIBIA_LEN + 10.0f
 //         });
 //         l.getJointAngles(&bc, &cf, &ft);
 //         assertNear(bc, -90.0f, 0.25f);
