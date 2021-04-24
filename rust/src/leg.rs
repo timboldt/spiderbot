@@ -32,7 +32,7 @@ enum Joint {
     FemurTibia,
 }
 
-const RAD_TO_DEG: f32 = 180.0/3.14159;
+const RAD_TO_DEG: f32 = 180.0 / 3.14159;
 
 const COXA_LEN: f32 = 23.5;
 const FEMUR_LEN: f32 = 38.0;
@@ -120,151 +120,86 @@ impl Leg {
         let ft = f32::acos(cos_num / cos_denom);
 
         // Convert radians to degrees.
-        (
-            bc * RAD_TO_DEG,
-            cf * RAD_TO_DEG,
-            ft * RAD_TO_DEG,
-        )
+        (bc * RAD_TO_DEG, cf * RAD_TO_DEG, ft * RAD_TO_DEG)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn is_near(a:f32, b: f32) -> bool {
-        return (a-b).abs() < 0.25;
+    fn is_near(a: f32, b: f32) -> bool {
+        return (a - b).abs() < 0.25;
+    }
+
+    fn assert_tuple_approx_equal(a: (f32, f32, f32), b: (f32, f32, f32)) {
+        assert!(is_near(a.0, b.0), "{} not near {}", a.0, b.0);
+        assert!(is_near(a.1, b.1), "{} not near {}", a.1, b.1);
+        assert!(is_near(a.2, b.2), "{} not near {}", a.2, b.2);
     }
 
     #[test]
     fn test_joint_angles_at_null_point() {
         let leg = Leg::new(Position::FrontRight);
-        let (bc,cf,ft) = leg.get_joint_angles();
-        assert!(is_near(bc, 45.0), "{} not near {}", bc, 45.0);
-        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
-        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (45.0, 0.0, 90.0));
 
         let leg = Leg::new(Position::FrontLeft);
-        let (bc,cf,ft) = leg.get_joint_angles();
-        assert!(is_near(bc, 135.0), "{} not near {}", bc, 135.0);
-        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
-        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (135.0, 0.0, 90.0));
 
         let leg = Leg::new(Position::BackRight);
-        let (bc,cf,ft) = leg.get_joint_angles();
-        assert!(is_near(bc, -45.0), "{} not near {}", bc, -45.0);
-        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
-        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (-45.0, 0.0, 90.0));
 
         let leg = Leg::new(Position::BackLeft);
-        let (bc,cf,ft) = leg.get_joint_angles();
-        assert!(is_near(bc, -135.0), "{} not near {}", bc, -135.0);
-        assert!(is_near(cf, 0.0), "{} not near {}", cf, 0.0);
-        assert!(is_near(ft, 90.0), "{} not near {}", ft, 90.0);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (-135.0, 0.0, 90.0));
+    }
+
+    #[test]
+    fn test_joint_angles_at_sides_of_body() {
+        // Toe is to the side, pulled in a bit, and down.
+        let hip_offset = (COXA_LEN + FEMUR_LEN) / f32::sqrt(2.0);
+        let x = hip_offset / 2.0;
+        let y = hip_offset;
+        let z = -20.0;
+
+        let mut leg = Leg::new(Position::FrontRight);
+        leg.set_toe_point(-x, -y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (0.0, -42.5, 111.0));
+
+        let mut leg = Leg::new(Position::FrontLeft);
+        leg.set_toe_point(x, -y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (180.0, -42.5, 111.0));
+
+        let mut leg = Leg::new(Position::BackRight);
+        leg.set_toe_point(-x, y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (0.0, -42.5, 111.0));
+
+        let mut leg = Leg::new(Position::BackLeft);
+        leg.set_toe_point(x, y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (180.0, -42.5, 111.0));
+    }
+
+    #[test]
+    fn test_joint_angles_ahead_and_behind_body() {
+        // Toe to the front (or back), stretched out a bit, and above the hip.
+        let hip_offset = (COXA_LEN + FEMUR_LEN) / f32::sqrt(2.0);
+        let x = hip_offset;
+        let y = -2.0/3.0 * hip_offset;
+        let z = TIBIA_LEN + 10.0;
+
+        let mut leg = Leg::new(Position::FrontRight);
+        leg.set_toe_point(-x, -y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (90.0, 145.0, 26.5));
+
+        let mut leg = Leg::new(Position::FrontLeft);
+        leg.set_toe_point(x, -y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (90.0, 145.0, 26.5));
+
+        let mut leg = Leg::new(Position::BackRight);
+        leg.set_toe_point(-x, y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (-90.0, 145.0, 26.5));
+
+        let mut leg = Leg::new(Position::BackLeft);
+        leg.set_toe_point(x, y, z);
+        assert_tuple_approx_equal(leg.get_joint_angles(), (-90.0, 145.0, 26.5));
     }
 }
-
-// test(Leg, JointAnglesSideOfBody) {
-//     float hip_offset = (Leg::coxa_len + Leg::FEMUR_LEN) / sqrtf(2.0f);
-
-//     float bc;
-//     float cf;
-//     float ft;
-//     {
-//         Leg l(Leg::kFrontRight);
-//         // To the side, pulled in a bit, and down.
-//         l.setToePoint(Point3D{x : -hip_offset / 2.0f, y : -hip_offset, -20.0f});
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 0.0f, 0.25f);
-//         assertNear(cf, -42.5f, 0.25f);
-//         assertNear(ft, 111.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kFrontLeft);
-//         // To the side, pulled in a bit, and down.
-//         l.setToePoint(Point3D{x : hip_offset / 2.0f, y : -hip_offset, -20.0f});
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 180.0f, 0.25f);
-//         assertNear(cf, -42.5f, 0.25f);
-//         assertNear(ft, 111.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackRight);
-//         // To the side, pulled in a bit, and down.
-//         l.setToePoint(Point3D{x : -hip_offset / 2.0f, y : hip_offset, -20.0f});
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 0.0f, 0.25f);
-//         assertNear(cf, -42.5f, 0.25f);
-//         assertNear(ft, 111.0f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackLeft);
-//         // To the side, pulled in a bit, and down.
-//         l.setToePoint(Point3D{x : hip_offset / 2.0f, y : hip_offset, -20.0f});
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 180.0f, 0.25f);
-//         assertNear(cf, -42.5f, 0.25f);
-//         assertNear(ft, 111.0f, 0.25f);
-//     }
-// }
-
-// test(Leg, JointAnglesAheadOrBehindBody) {
-//     float hip_offset = (Leg::coxa_len + Leg::FEMUR_LEN) / sqrtf(2.0f);
-
-//     float bc;
-//     float cf;
-//     float ft;
-//     {
-//         Leg l(Leg::kFrontRight);
-//         // To the front (or back), stretched out a bit, and above the hip.
-//         l.setToePoint(Point3D{
-//             x : -hip_offset,
-//             y : 2.0f / 3.0f * hip_offset,
-//             Leg::TIBIA_LEN + 10.0f
-//         });
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 90.0f, 0.25f);
-//         assertNear(cf, 145.0f, 0.25f);
-//         assertNear(ft, 26.5f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kFrontLeft);
-//         // To the front (or back), stretched out a bit, and above the hip.
-//         l.setToePoint(Point3D{
-//             x : hip_offset,
-//             y : 2.0f / 3.0f * hip_offset,
-//             Leg::TIBIA_LEN + 10.0f
-//         });
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, 90.0f, 0.25f);
-//         assertNear(cf, 145.0f, 0.25f);
-//         assertNear(ft, 26.5f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackRight);
-//         // To the front (or back), stretched out a bit, and above the hip.
-//         l.setToePoint(Point3D{
-//             x : -hip_offset,
-//             y : -2.0f / 3.0f * hip_offset,
-//             Leg::TIBIA_LEN + 10.0f
-//         });
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, -90.0f, 0.25f);
-//         assertNear(cf, 145.0f, 0.25f);
-//         assertNear(ft, 26.5f, 0.25f);
-//     }
-//     {
-//         Leg l(Leg::kBackLeft);
-//         // To the front (or back), stretched out a bit, and above the hip.
-//         l.setToePoint(Point3D{
-//             x : hip_offset,
-//             y : -2.0f / 3.0f * hip_offset,
-//             Leg::TIBIA_LEN + 10.0f
-//         });
-//         l.getJointAngles(&bc, &cf, &ft);
-//         assertNear(bc, -90.0f, 0.25f);
-//         assertNear(cf, 145.0f, 0.25f);
-//         assertNear(ft, 26.5f, 0.25f);
-//     }
-// }
