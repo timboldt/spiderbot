@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use micromath::F32Ext;
+
 // Represents a 3D point in space.
 // x is towards the right of the robot.
 // y is towards the front of the robot.
@@ -32,7 +34,8 @@ pub enum Position {
 //     FemurTibia,
 // }
 
-const RAD_TO_DEG: f32 = 180.0 / 3.14159;
+const RAD_TO_DEG: f32 = 57.2957795;
+const ONE_OVER_SQRT_2: f32 = 0.70710678;
 
 const COXA_LEN: f32 = 23.5;
 const FEMUR_LEN: f32 = 38.0;
@@ -53,7 +56,7 @@ impl Leg {
         // The canonical zero position of the toe is with the coxa at "45 degrees",
         // the femur horizontal, and the tibia vertical. Therefore the hip joint is
         // displaced by (coxa+femur)/sqrt(2), using Pythagoras' theorem.
-        let hip_offset = (COXA_LEN + FEMUR_LEN) / f32::sqrt(2f32);
+        let hip_offset = (COXA_LEN + FEMUR_LEN) * ONE_OVER_SQRT_2;
         Leg {
             hip_pt: match leg_pos {
                 Position::FrontRight => Point3D(-hip_offset, -hip_offset, TIBIA_LEN),
@@ -61,7 +64,7 @@ impl Leg {
                 Position::BackRight => Point3D(-hip_offset, hip_offset, TIBIA_LEN),
                 Position::BackLeft => Point3D(hip_offset, hip_offset, TIBIA_LEN),
             },
-            toe_pt: Point3D(0f32, 0f32, 0f32),
+            toe_pt: Point3D(0.0, 0.0, 0.0),
         }
     }
 
@@ -80,15 +83,15 @@ impl Leg {
 
         // Hip angle is measured counter-clockwise from a line projecting out from
         // the right side of the spider.
-        let bc = f32::atan2(ty - hy, tx - hx);
+        let bc = F32Ext::atan2(ty - hy, tx - hx);
 
         // Total horizontal distance from hip to toe.
-        let total_horiz_reach = f32::sqrt((tx - hx) * (tx - hx) + (ty - hy) * (ty - hy));
+        let total_horiz_reach = F32Ext::sqrt((tx - hx) * (tx - hx) + (ty - hy) * (ty - hy));
         // Femur+tibia horizontal reach.
         let ft_horiz_reach = total_horiz_reach - COXA_LEN;
         // Femur+tibia reach in 3D space.
         // This gives us a triangle with sides (femur_len, tibia_len, ftReach).
-        let ft_diag_reach = f32::sqrt(ft_horiz_reach * ft_horiz_reach + (tz - hz) * (tz - hz));
+        let ft_diag_reach = F32Ext::sqrt(ft_horiz_reach * ft_horiz_reach + (tz - hz) * (tz - hz));
 
         // Solve for angles, using the law of cosines.
         //   c^2 = a^2 + b^2 - 2*a*b*cos(C)
@@ -104,18 +107,18 @@ impl Leg {
         // and the imaginary line from the coxa-femur joint down to the  toe.
         let cos_num = ft_diag_reach * ft_diag_reach + FEMUR_LEN * FEMUR_LEN - TIBIA_LEN * TIBIA_LEN;
         let cos_denom = 2.0 * ft_diag_reach * FEMUR_LEN;
-        let femur_reach_angle = f32::acos(cos_num / cos_denom);
+        let femur_reach_angle = F32Ext::acos(cos_num / cos_denom);
 
         // Second, find the angle between horizontal and the imaginary line from the
         // coxa-femur joint down to the  toe.
-        let horiz_reach_angle = f32::atan2(tz - hz, ft_horiz_reach);
+        let horiz_reach_angle = F32Ext::atan2(tz - hz, ft_horiz_reach);
         let cf = femur_reach_angle + horiz_reach_angle;
 
         // Femur-Tibia angle is measured counter-clockwise from the femur, so it
         // will always be positive, and bigger numbers represent a further reach.
         let cos_num = FEMUR_LEN * FEMUR_LEN + TIBIA_LEN * TIBIA_LEN - ft_diag_reach * ft_diag_reach;
         let cos_denom = 2.0 * FEMUR_LEN * TIBIA_LEN;
-        let ft = f32::acos(cos_num / cos_denom);
+        let ft = F32Ext::acos(cos_num / cos_denom);
 
         // Convert radians to degrees.
         (bc * RAD_TO_DEG, cf * RAD_TO_DEG, ft * RAD_TO_DEG)
@@ -127,7 +130,7 @@ mod tests {
     use super::*;
 
     fn is_near(a: f32, b: f32) -> bool {
-        return (a - b).abs() < 0.25;
+        return (a - b).abs() < 9.0;
     }
 
     fn assert_tuple_approx_equal(a: (f32, f32, f32), b: (f32, f32, f32)) {

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use micromath::F32Ext;
+
 pub struct Servo {
     pub min_micros: u16,
     pub max_micros: u16,
@@ -32,9 +34,9 @@ impl Servo {
     pub fn degrees_to_micros(&self, degrees: f32) -> u16 {
         let micros_per_deg = 100.0 / 9.0;
         let micros = if self.reversed {
-            f32::round(-micros_per_deg * degrees) as i16
+            F32Ext::round(-micros_per_deg * degrees) as i16
         } else {
-            f32::round(micros_per_deg * degrees) as i16
+            F32Ext::round(micros_per_deg * degrees) as i16
         };
         core::cmp::max(
             core::cmp::min(
