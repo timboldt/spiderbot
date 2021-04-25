@@ -12,23 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//#![no_std]
+pub fn fast_sqrt(n : i16) -> i8 {
+    // A binary search of a lookup table is another option, but this algorithm
+    // seems to complete in 30-40 clock cycles, which is pretty quick.
+    assert!(n >= 0);
+    if n < 2 {
+        return n as i8;
+    }
+    let small = fast_sqrt(n >> 2) << 1;
+    let big = small + 1;
+    if big as i16 * big as i16 > n {
+        small
+    } else {
+        big
+    }
+}
 
-mod math;
-mod spider;
-use spider::Spider;
-use std::time::{Duration, Instant};
 
-fn main() {
-    let _ = Spider::new();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let start = Instant::now();
-    for _ in 0..1000 {
-        for i in 10000..16000 {
-            let _ = math::fast_sqrt(i);
+    #[test]
+    fn test_sanity() {
+        for n in 0..16384 {
+            assert_eq!(fast_sqrt(n), (n as f32).sqrt().floor() as i8);
         }
     }
-    let duration = start.elapsed();
-
-    println!("Avg time: {:?}", duration / 6_000_000);
 }
