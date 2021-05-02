@@ -1,8 +1,8 @@
 #include "spider.h"
 
 Spider::Spider()
-    : _legs({Leg(Leg::kFrontRight), Leg(Leg::kFrontLeft), Leg(Leg::kBackRight),
-             Leg(Leg::kBackLeft)}) {}
+    : _legs{Leg(Leg::kFrontRight), Leg(Leg::kFrontLeft), Leg(Leg::kBackRight),
+             Leg(Leg::kBackLeft)} {}
 
 void Spider::sendUpdatesToServos(Adafruit_PWMServoDriver *pwm, Servo *servos) {
     for (size_t leg = 0; leg < 4; leg++) {
